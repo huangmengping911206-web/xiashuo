@@ -1,7 +1,7 @@
 // module.stock.js - A股分析模块
 // 依赖: Alpine.js, app.main.js (this.api)
 
-const StockModule = {
+window.StockModule = {
     // ==================== 数据状态 ====================
     boardLoading: false,
     marketIndices: [],      // 大盘指数
