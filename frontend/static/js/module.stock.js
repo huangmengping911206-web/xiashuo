@@ -98,7 +98,15 @@ window.StockModule = {
         this.predictionDetail = null;
         this.predictionHistory = [];
         this.predictionStats = null;
-        this.expandedDimensions = {};
+        // 默认展开所有六维
+        this.expandedDimensions = {
+            fundamental: true,
+            industry: true,
+            news: true,
+            technical: true,
+            capital: true,
+            risk: true,
+        };
         try {
             const data = await this.api('/v2/stock/prediction/' + symbol);
             this.predictionDetail = data.latest;

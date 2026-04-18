@@ -4,8 +4,17 @@
 
 /* ==================== 股票看板页 ==================== */
 
+/* 股票页标题栏紧凑 */
+.page-header.stock-header {
+    padding: 8px 15px;
+}
+
+.page-header.stock-header h1 {
+    font-size: 14px !important;
+}
+
 .stock-board-container {
-    padding: 10px 15px;
+    padding: 8px 15px;
     min-height: calc(100vh - 60px);
 }
 
@@ -88,6 +97,125 @@
 }
 
 .watchlist-add-btn:active { opacity: 0.7; }
+
+/* 自选股卡片（吉卜力风格） */
+.watchlist-item {
+    padding: 14px 16px;
+    margin-bottom: 10px;
+    cursor: pointer;
+}
+
+.watchlist-item-main {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.watchlist-item-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.watchlist-item-name {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--text-primary);
+    display: block;
+}
+
+.watchlist-item-code {
+    font-size: 11px;
+    color: var(--text-light);
+    margin-top: 2px;
+    display: block;
+}
+
+.watchlist-item-price {
+    text-align: right;
+    flex-shrink: 0;
+    margin-left: 12px;
+}
+
+.watchlist-item-current {
+    font-size: 18px;
+    font-weight: 700;
+    display: block;
+}
+
+.watchlist-item-change {
+    font-size: 12px;
+    font-weight: 500;
+    display: block;
+    margin-top: 2px;
+}
+
+.watchlist-item-prediction {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 10px;
+    padding-top: 10px;
+    border-top: 1px dashed rgba(135, 206, 235, 0.3);
+    font-size: 12px;
+    color: var(--text-secondary);
+}
+
+.watchlist-item-prediction .pred-tag {
+    padding: 2px 8px;
+    border-radius: 8px;
+    font-weight: 500;
+    font-size: 11px;
+}
+
+.watchlist-item-prediction .pred-tag.bullish {
+    background: rgba(231, 76, 60, 0.1);
+    color: #e74c3c;
+}
+
+.watchlist-item-prediction .pred-tag.bearish {
+    background: rgba(39, 174, 96, 0.1);
+    color: #27ae60;
+}
+
+.watchlist-item-prediction .pred-tag.neutral {
+    background: rgba(135, 206, 235, 0.2);
+    color: var(--text-secondary);
+}
+
+.watchlist-item-prediction .pred-score {
+    color: var(--lobster-grass);
+    font-weight: 600;
+}
+
+.watchlist-item-prediction .pred-magnitude {
+    color: var(--text-light);
+}
+
+/* 吉卜力风格返回按钮 */
+.ghibli-back-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 6px 14px;
+    background: var(--lobster-cream);
+    border: 2px solid var(--lobster-sky-light);
+    border-radius: 20px;
+    font-size: 13px;
+    color: var(--lobster-grass);
+    cursor: pointer;
+    transition: all 0.3s;
+    font-weight: 500;
+}
+
+.ghibli-back-btn:active {
+    background: var(--lobster-sky-light);
+    transform: scale(0.95);
+}
+
+.ghibli-back-btn .back-arrow {
+    font-size: 16px;
+    line-height: 1;
+}
 
 /* 自选股表格 */
 .watchlist-table {
@@ -334,10 +462,93 @@
     border-top: 1px solid rgba(135, 206, 235, 0.15);
 }
 
+/* 六维展开内容（新版） */
+.dimension-label {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text-primary);
+}
+
+.dimension-toggle {
+    font-size: 11px;
+    color: var(--text-light);
+    transition: transform 0.3s;
+}
+
+.dimension-content {
+    padding: 12px;
+    font-size: 13px;
+    line-height: 1.7;
+    color: var(--text-secondary);
+    border-top: 1px dashed rgba(135, 206, 235, 0.2);
+    white-space: pre-line;
+}
+
 /* 综合判断 */
 .prediction-summary {
     margin-bottom: 15px;
     padding: 15px;
+}
+
+.prediction-summary-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 10px;
+    flex-wrap: wrap;
+}
+
+.prediction-summary-direction {
+    font-size: 15px;
+    font-weight: 600;
+    padding: 3px 10px;
+    border-radius: 10px;
+}
+
+.prediction-summary-direction.bullish {
+    background: rgba(231, 76, 60, 0.1);
+    color: #e74c3c;
+}
+
+.prediction-summary-direction.bearish {
+    background: rgba(39, 174, 96, 0.1);
+    color: #27ae60;
+}
+
+.prediction-summary-direction.neutral {
+    background: rgba(135, 206, 235, 0.2);
+    color: var(--text-secondary);
+}
+
+.prediction-summary-magnitude {
+    font-size: 13px;
+    color: var(--text-secondary);
+    font-weight: 500;
+}
+
+.prediction-summary-score {
+    font-size: 13px;
+    color: var(--lobster-grass);
+    font-weight: 600;
+    margin-left: auto;
+}
+
+.prediction-summary-meta {
+    display: flex;
+    gap: 15px;
+    font-size: 12px;
+    color: var(--text-light);
+    margin-bottom: 8px;
+}
+
+.prediction-summary-reasons {
+    font-size: 13px;
+    line-height: 1.7;
+    color: var(--text-secondary);
+    padding: 10px;
+    background: var(--lobster-cream);
+    border-radius: 10px;
+    white-space: pre-line;
 }
 
 .summary-label {
