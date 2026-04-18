@@ -16,6 +16,10 @@ class Settings(BaseSettings):
     APP_NAME: str = "My FastAPI Project"
     config_type = 'default_config'
 
+    # 内部 API 配置（供 Claw Agent 调用）
+    INTERNAL_API_KEY: str = ""  # 内部 API 密钥，从 .env 加载
+    CLAW_USER_ID: int = 0       # Claw 机器人账号 ID，从 .env 加载
+
     # 从 app_config.yaml 加载非敏感配置
     log_level: str = "INFO"
     static_dir: str = str(Path(__file__).parent.parent / "static")
