@@ -600,22 +600,17 @@
         <div x-show="showAddStockModal" class="modal-overlay" @click.self="showAddStockModal = false">
             <div class="modal-content" style="max-height: 70vh; overflow-y: auto;">
                 <h3 class="modal-title">添加自选股</h3>
-                <div class="search-input-wrapper" style="display: flex; gap: 8px;">
-                    <input type="text" class="search-input" placeholder="输入股票代码或名称搜索..."
-                           x-model="stockSearchKeyword" @keydown.enter="searchStockToAdd()" style="flex: 1;">
-                    <button class="watchlist-add-btn" @click="searchStockToAdd()" :disabled="!stockSearchKeyword.trim() || stockSearching" style="white-space: nowrap;">搜索</button>
+                <div style="margin-bottom: 10px; font-size: 12px; color: var(--text-light);">输入股票代码和名称（上交所 .SS，深交所 .SZ）</div>
+                <div style="display: flex; flex-direction: column; gap: 10px;">
+                    <input type="text" class="search-input" placeholder="股票代码，如 600519.SS"
+                           x-model="addStockSymbol">
+                    <input type="text" class="search-input" placeholder="股票名称，如 贵州茅台"
+                           x-model="addStockName">
+                    <button class="watchlist-add-btn" @click="manualAddToWatchlist()" :disabled="!addStockSymbol.trim() || !addStockName.trim() || addStockLoading" style="width: 100%; padding: 10px;">
+                        <span x-show="!addStockLoading">添加到自选</span>
+                        <span x-show="addStockLoading">添加中...</span>
+                    </button>
                 </div>
-                <div x-show="stockSearching" class="search-loading">搜索中...</div>
-                <div x-show="!stockSearching && stockSearchResults.length === 0 && stockSearchKeyword.length > 0" class="search-empty">未找到匹配的股票</div>
-                <template x-for="item in stockSearchResults" :key="item.symbol">
-                    <div class="search-result-item">
-                        <div class="search-result-info">
-                            <div class="search-result-name" x-text="item.name"></div>
-                            <div class="search-result-code" x-text="item.symbol + ' · ' + (item.exchange || '')"></div>
-                        </div>
-                        <button class="search-result-add" @click="addToWatchlist(item)" x-text="watchlist.some(w => w.symbol === item.symbol) ? '已添加' : '添加'"></button>
-                    </div>
-                </template>
                 <div class="modal-actions">
                     <button class="modal-btn modal-btn-cancel" @click="showAddStockModal = false">关闭</button>
                 </div>
