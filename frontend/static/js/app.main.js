@@ -38,6 +38,7 @@ function App() {
         ...window.AppTweet,     // 推文模块 (列表/详情/发布)
         ...window.AppUser,      // 用户模块 (个人中心/缓存)
         ...window.AppChat, // 聊天模块
+        ...window.StockModule, // A股分析模块
 
 
         // ========== 生命周期钩子 ==========

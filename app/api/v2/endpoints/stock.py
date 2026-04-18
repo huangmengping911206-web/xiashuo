@@ -42,6 +42,41 @@ async def _fetch_stock_quotes(symbols: List[str]) -> dict:
         return {}
 
 
+async def _search_stocks(keyword: str) -> list:
+    """从 Finance API 搜索股票"""
+    try:
+        async with httpx.AsyncClient(timeout=15.0) as client:
+            resp = await client.get(
+                f"{FINANCE_API_BASE}/markets/search",
+                params={"search": keyword},
+                headers=FINANCE_HEADERS,
+            )
+            data = resp.json()
+            body = data.get("body", [])
+            # 过滤出 A 股（.SS 上交所 / .SZ 深交所）
+            results = []
+            for item in body:
+                sym = item.get("symbol", "")
+                if ".SS" in sym or ".SZ" in sym:
+                    results.append({
+                        "symbol": sym,
+                        "name": item.get("shortname", item.get("longname", "")),
+                        "exchange": item.get("exchDisp", ""),
+                        "industry": item.get("industryDisp", ""),
+                    })
+            return results[:10]  # 最多返回10条
+    except Exception as e:
+        logger.error(f"[Stock API] 搜索股票失败: {e}")
+        return []
+
+
+@router.get("/search", summary="搜索股票")
+async def search_stocks(keyword: str = Query(..., min_length=1, description="股票代码或名称")):
+    """搜索 A 股股票，返回匹配结果"""
+    results = await _search_stocks(keyword)
+    return {"results": results}
+
+
 @router.get("/board", response_model=BoardResponse, summary="股票看板")
 async def get_stock_board(session: AsyncSession = Depends(get_session)):
     """
