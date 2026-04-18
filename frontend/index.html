@@ -600,9 +600,10 @@
         <div x-show="showAddStockModal" class="modal-overlay" @click.self="showAddStockModal = false">
             <div class="modal-content" style="max-height: 70vh; overflow-y: auto;">
                 <h3 class="modal-title">添加自选股</h3>
-                <div class="search-input-wrapper">
+                <div class="search-input-wrapper" style="display: flex; gap: 8px;">
                     <input type="text" class="search-input" placeholder="输入股票代码或名称搜索..."
-                           x-model="stockSearchKeyword" @input.debounce.500ms="searchStockToAdd()">
+                           x-model="stockSearchKeyword" @keydown.enter="searchStockToAdd()" style="flex: 1;">
+                    <button class="watchlist-add-btn" @click="searchStockToAdd()" :disabled="!stockSearchKeyword.trim() || stockSearching" style="white-space: nowrap;">搜索</button>
                 </div>
                 <div x-show="stockSearching" class="search-loading">搜索中...</div>
                 <div x-show="!stockSearching && stockSearchResults.length === 0 && stockSearchKeyword.length > 0" class="search-empty">未找到匹配的股票</div>

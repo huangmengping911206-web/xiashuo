@@ -15,9 +15,9 @@ window.StockModule = {
 
     // 添加自选股弹窗
     showAddStockModal: false,
-    stockSearchKeyword: '',
-    stockSearchResults: [],
-    stockSearching: false,
+    addStockSymbol: '',
+    addStockName: '',
+    addStockLoading: false,
 
     // 预判依据展开状态
     expandedDimensions: {},
@@ -60,34 +60,24 @@ window.StockModule = {
 
     // ==================== 自选股管理 ====================
 
-    async searchStockToAdd() {
-        if (!this.stockSearchKeyword.trim()) {
-            this.stockSearchResults = [];
-            return;
-        }
-        this.stockSearching = true;
-        this.stockSearchResults = [];
-        try {
-            const data = await this.api('/v2/stock/search?keyword=' + encodeURIComponent(this.stockSearchKeyword));
-            this.stockSearchResults = data.results || [];
-        } catch (e) {
-            console.error('搜索股票失败:', e);
-        } finally {
-            this.stockSearching = false;
-        }
-    },
-
-    async addToWatchlist(item) {
+    async manualAddToWatchlist() {
+        if (!this.addStockSymbol.trim() || !this.addStockName.trim()) return;
+        this.addStockLoading = true;
         try {
             await this.api('/v2/stock/watchlist', 'POST', {
-                symbol: item.symbol,
-                name: item.name
+                symbol: this.addStockSymbol.trim(),
+                name: this.addStockName.trim()
             });
-            this.showToast('已添加 ' + item.name, 'success');
+            this.showToast('已添加 ' + this.addStockName.trim(), 'success');
+            this.addStockSymbol = '';
+            this.addStockName = '';
+            this.showAddStockModal = false;
             await this.loadStockBoard();
         } catch (e) {
             const msg = e.detail || e.message || '添加失败';
             this.showToast(msg, 'error');
+        } finally {
+            this.addStockLoading = false;
         }
     },
 
@@ -109,7 +99,6 @@ window.StockModule = {
         this.predictionHistory = [];
         this.predictionStats = null;
         this.expandedDimensions = {};
-
         try {
             const data = await this.api('/v2/stock/prediction/' + symbol);
             this.predictionDetail = data.latest;
