@@ -426,7 +426,7 @@
 
         <!-- ========== 7. A股分析 - 看板页 ========== -->
         <div x-show="page === 'stock'" x-transition class="page-container">
-            <header class="page-header stock-header">
+            <header class="page-header">
                 <h1>📈 A股分析</h1>
                 <button class="refresh-btn" :class="{ spinning: boardLoading }" @click="refreshBoard()">🔄</button>
             </header>
@@ -487,6 +487,7 @@
                                         <span class="pred-magnitude" x-text="item.magnitude_min != null ? formatMagnitude(item.magnitude_min, item.magnitude_max) : ''"></span>
                                         <span style="margin-left: auto; font-size: 11px; color: var(--text-light);" x-text="item.analysis_date ? '📅 ' + item.analysis_date : ''"></span>
                                     </div>
+                                    <div x-show="item.reasons" class="watchlist-item-reason" x-text="item.reasons"></div>
                                 </div>
                             </template>
                         </div>
@@ -525,7 +526,7 @@
 
         <!-- ========== 8. A股分析 - 预判详情页 ========== -->
         <div x-show="page === 'stock-detail'" x-transition class="page-container">
-            <header class="page-header stock-header">
+            <header class="page-header">
                 <button class="ghibli-back-btn" @click="goBackFromStock()">
                     <span class="back-arrow">🌿</span> 返回
                 </button>

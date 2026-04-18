@@ -71,7 +71,7 @@ body {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 15px 20px;
+    padding: 8px 15px;
 
     /* 毛玻璃效果属性 */
     background: rgba(255, 255, 255, 0.95);

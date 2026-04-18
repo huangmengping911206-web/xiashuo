@@ -114,6 +114,7 @@ async def get_stock_board(session: AsyncSession = Depends(get_session)):
             "score": pred.score if pred else None,
             "entry_price": pred.entry_price if pred else None,
             "analysis_date": str(pred.analysis_date) if pred else None,
+            "reasons": pred.reasons if pred else None,
         })
 
     return {"indices": [], "watchlist": watchlist_items}
