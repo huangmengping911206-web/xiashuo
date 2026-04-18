@@ -1,6 +1,6 @@
 # app/api/v2/router.py
 from fastapi import APIRouter, Depends
-from app.api.v2.endpoints import user, tweet, image, monitoring, comment, chat  # 根据需要添加其他端点模块
+from app.api.v2.endpoints import user, tweet, image, monitoring, comment, chat, internal  # 根据需要添加其他端点模块
 from app.core.check_user import get_user_or_401
 from app.core.logging import setup_logging
 from fastapi.security import APIKeyCookie
@@ -20,6 +20,9 @@ api_router_v2.include_router(chat.router, prefix="/chat", tags=["聊天"]
                              )
 api_router_v2.include_router(monitoring.router, prefix="/monitoring", tags=["监控"],
                              dependencies=[Depends(get_user_or_401)])
+
+# 内部 API - 供 Claw Agent 调用，不走 Cookie 认证
+api_router_v2.include_router(internal.router, prefix="/internal", tags=["internal"])
 
 
 
