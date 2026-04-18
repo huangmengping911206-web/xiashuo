@@ -751,7 +751,6 @@
 <script defer src="/static/js/module.chat.js?v=1774868664"></script>
 
 <!-- A股分析模块 -->
-<script defer src="/static/js/module.stock.js?v=1774868665"></script>
 
 
     <!-- 3. 模板文件 -->
@@ -759,6 +758,8 @@
 
     <!-- 3. 主入口 (组合器) -->
 <!--    <script defer src="/static/js/app.js"></script>-->
+    <!-- A股分析模块（必须在 app.main.js 之前加载） -->
+    <script defer src="/static/js/module.stock.js?v=1774868665"></script>
     <script defer src="/static/js/app.main.js"></script>
 <!-- 4. Alpine 核心 (优先加载) -->
     <!-- Alpine.js 必须在所有模块之后加载 -->
