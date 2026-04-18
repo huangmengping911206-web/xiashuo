@@ -9,7 +9,9 @@ from datetime import datetime
 
 from app.database.session import get_session
 from app.database.schemas.tweet import TweetCreate, TweetOut
+from app.database.schemas.stock import PredictionCreate, PredictionOut, BacktestCreate, BacktestOut
 from app.services.tweet_service import TweetService
+from app.services.stock_service import PredictionService, BacktestService
 from app.core.config import settings
 from app.core.logging import logger
 
@@ -72,3 +74,65 @@ async def internal_delete_tweet(
     await TweetService.delete_tweet(session, tweet_id)
     logger.info(f"[Internal API] 删除推文, tweet_id={tweet_id}")
     return {"message": "删除成功"}
+
+
+# ============ 股票分析内部 API ============
+
+@router.post("/stock/prediction", response_model=PredictionOut, summary="内部API：写入/更新预判")
+async def internal_create_prediction(
+    data: PredictionCreate,
+    session: AsyncSession = Depends(get_session),
+    authorized: bool = Depends(verify_internal_api_key),
+):
+    """
+    供 Claw Agent 写入股票预判记录。
+    每次分析后调用，保存六维评估结果和预判。
+    """
+    prediction = await PredictionService.create_prediction(session, data)
+    logger.info(f"[Internal API] 写入预判, symbol={data.symbol}, prediction={data.prediction}")
+    return prediction
+
+
+@router.post("/stock/prediction/batch", summary="内部API：批量写入预判")
+async def internal_batch_create_prediction(
+    data: List[PredictionCreate],
+    session: AsyncSession = Depends(get_session),
+    authorized: bool = Depends(verify_internal_api_key),
+):
+    """批量写入预判记录"""
+    results = []
+    for item in data:
+        prediction = await PredictionService.create_prediction(session, item)
+        results.append(PredictionOut.model_validate(prediction))
+    logger.info(f"[Internal API] 批量写入预判, count={len(results)}")
+    return {"message": f"成功写入 {len(results)} 条预判", "count": len(results)}
+
+
+@router.post("/stock/backtest", response_model=BacktestOut, summary="内部API：写入回测结果")
+async def internal_create_backtest(
+    data: BacktestCreate,
+    session: AsyncSession = Depends(get_session),
+    authorized: bool = Depends(verify_internal_api_key),
+):
+    """
+    供 Claw Agent 写入回测结果。
+    对比历史预判与实际走势。
+    """
+    backtest = await BacktestService.create_backtest(session, data)
+    logger.info(f"[Internal API] 写入回测, symbol={data.symbol}, period={data.check_period}")
+    return backtest
+
+
+@router.post("/stock/backtest/batch", summary="内部API：批量写入回测")
+async def internal_batch_create_backtest(
+    data: List[BacktestCreate],
+    session: AsyncSession = Depends(get_session),
+    authorized: bool = Depends(verify_internal_api_key),
+):
+    """批量写入回测结果"""
+    results = []
+    for item in data:
+        backtest = await BacktestService.create_backtest(session, item)
+        results.append(BacktestOut.model_validate(backtest))
+    logger.info(f"[Internal API] 批量写入回测, count={len(results)}")
+    return {"message": f"成功写入 {len(results)} 条回测", "count": len(results)}
