@@ -1,0 +1,2260 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>吉卜力微博</title>
+
+    <style>
+        /* ========== 基础配色 ========== */
+        :root {
+            --ghibli-sky: #87CEEB;
+            --ghibli-sky-light: #B0E0E6;
+            --ghibli-grass: #90B77D;
+            --ghibli-grass-light: #B4D4A4;
+            --ghibli-cream: #FFF8E7;
+            --ghibli-paper: #FEFBF3;
+            --ghibli-pink: #FFB6C1;
+            --ghibli-coral: #FF7F7F;
+            --text-primary: #5D5D5D;
+            --text-secondary: #8B8B8B;
+            --text-light: #A9A9A9;
+            --shadow-soft: 0 2px 8px rgba(135, 206, 235, 0.2);
+            --shadow-card: 0 4px 12px rgba(144, 183, 125, 0.15);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Microsoft YaHei', sans-serif;
+            background: var(--ghibli-cream);
+            color: var(--text-primary);
+            max-width: 480px;
+            margin: 0 auto;
+            min-height: 100vh;
+            font-size: 14px;
+            line-height: 1.5;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        [x-cloak] { display: none !important; }
+
+        /* ========== 通用组件 ========== */
+        .page-container {
+            min-height: 100vh;
+            padding-bottom: 70px;
+        }
+
+        .page-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 15px 20px;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid rgba(135, 206, 235, 0.3);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            transition: all 0.3s;
+        }
+
+        .page-header h1 {
+            font-size: 18px;
+            color: var(--ghibli-grass);
+            font-weight: 500;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .header-btn {
+            background: none;
+            border: none;
+            font-size: 20px;
+            cursor: pointer;
+            padding: 5px 10px;
+            color: var(--text-secondary);
+            transition: color 0.3s;
+            flex-shrink: 0;
+        }
+
+        .header-btn:hover { color: var(--ghibli-grass); }
+
+        /* 搜索框内联展开 */
+        .header-search-inline {
+            display: flex;
+            align-items: center;
+            width: 100%;
+            gap: 10px;
+        }
+
+        .search-input-inline {
+            flex: 1;
+            padding: 8px 12px;
+            border: 1px solid var(--ghibli-sky-light);
+            border-radius: 20px;
+            font-size: 14px;
+            background: var(--ghibli-cream);
+            transition: all 0.3s;
+        }
+
+        .search-input-inline:focus {
+            outline: none;
+            border-color: var(--ghibli-grass);
+            background: white;
+        }
+
+        /* 吉卜力卡片 */
+        .ghibli-card {
+            background: white;
+            border-radius: 16px;
+            box-shadow: var(--shadow-card);
+            border: 1px solid rgba(135, 206, 235, 0.2);
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+
+        .ghibli-card:active {
+            transform: scale(0.98);
+        }
+
+        /* 头像 */
+        .avatar-circle {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            border: 3px solid var(--ghibli-grass);
+            object-fit: cover;
+            background: var(--ghibli-sky-light);
+            flex-shrink: 0;
+        }
+
+        .avatar-small {
+            width: 36px;
+            height: 36px;
+            border-width: 2px;
+        }
+
+        .avatar-large {
+            width: 100px;
+            height: 100px;
+            border-width: 4px;
+        }
+
+        /* 按钮 */
+        .ghibli-btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .ghibli-btn-primary {
+            background: linear-gradient(135deg, var(--ghibli-sky), var(--ghibli-grass));
+            color: white;
+            box-shadow: 0 4px 15px rgba(135, 206, 235, 0.4);
+        }
+
+        .ghibli-btn-primary:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        /* ========== 登录/注册页 ========== */
+        .auth-page {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .auth-card {
+            width: 100%;
+            max-width: 380px;
+            padding: 40px 30px;
+            text-align: center;
+        }
+
+        .auth-illustration {
+            margin-bottom: 30px;
+        }
+
+        .totoro-icon {
+            width: 120px;
+            height: auto;
+            animation: float 3s ease-in-out infinite;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+
+        .auth-title {
+            font-size: 28px;
+            color: var(--ghibli-grass);
+            margin-bottom: 30px;
+            font-weight: 500;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+            text-align: left;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 14px;
+            color: var(--text-secondary);
+            margin-bottom: 8px;
+            font-weight: 500;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 14px 16px;
+            border: 2px solid var(--ghibli-sky-light);
+            border-radius: 12px;
+            font-size: 16px;
+            transition: all 0.3s;
+            background: white;
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: var(--ghibli-grass);
+            box-shadow: 0 0 0 4px rgba(144, 183, 125, 0.1);
+        }
+
+        .auth-footer {
+            margin-top: 25px;
+            font-size: 14px;
+            color: var(--text-secondary);
+        }
+
+        .auth-footer a {
+            color: var(--ghibli-grass);
+            text-decoration: none;
+            font-weight: 500;
+            margin-left: 5px;
+        }
+
+        /* ========== 主页推文列表 ========== */
+        .tweet-list-container {
+            padding: 10px 0;
+            min-height: calc(100vh - 60px);
+        }
+
+        .tweet-card {
+            margin: 12px 15px;
+            padding: 15px;
+            cursor: pointer;
+        }
+
+        .tweet-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 12px;
+        }
+
+        .tweet-user-info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .tweet-user-name {
+            font-weight: 600;
+            font-size: 15px;
+            color: var(--text-primary);
+        }
+
+        .tweet-time {
+            display: block;
+            font-size: 12px;
+            color: var(--text-light);
+            margin-top: 2px;
+        }
+
+        .tweet-content {
+            margin-bottom: 12px;
+            line-height: 1.6;
+            font-size: 15px;
+            color: var(--text-primary);
+            word-break: break-word;
+        }
+
+        .tweet-more-btn {
+            background: none;
+            border: none;
+            color: var(--ghibli-grass);
+            font-size: 14px;
+            cursor: pointer;
+            padding: 5px 0;
+            font-weight: 500;
+        }
+
+        /* 图片九宫格 */
+        .tweet-images {
+            margin: 12px 0;
+            display: grid;
+            gap: 4px;
+            border-radius: 12px;
+            overflow: hidden;
+        }
+
+        .tweet-images.single {
+            max-width: 200px;
+        }
+
+        .tweet-images.double {
+            grid-template-columns: 1fr 1fr;
+        }
+
+        .tweet-images.grid-3 {
+            grid-template-columns: repeat(3, 1fr);
+        }
+
+        .tweet-images.grid-2 {
+            grid-template-columns: repeat(2, 1fr);
+        }
+
+        .tweet-img {
+            width: 100%;
+            aspect-ratio: 1;
+            object-fit: cover;
+            cursor: pointer;
+            background: #f5f5f5;
+        }
+
+        .tweet-images.single .tweet-img {
+            width: 100%;
+            height: auto;
+            max-height: 300px;
+            object-fit: contain;
+            aspect-ratio: auto;
+        }
+
+        .tweet-actions {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            padding-top: 12px;
+            border-top: 1px solid rgba(135, 206, 235, 0.3);
+        }
+
+        .tweet-action-btn {
+            background: none;
+            border: none;
+            font-size: 14px;
+            color: var(--text-secondary);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            padding: 5px 0;
+            transition: color 0.3s;
+            flex-shrink: 0;
+        }
+
+        .tweet-action-btn:hover { color: var(--ghibli-coral); }
+        .tweet-action-btn:disabled { opacity: 0.3; cursor: not-allowed; }
+
+        /* 推文标签显示 */
+        .tweet-tags-display {
+            margin-left: auto;
+            font-size: 12px;
+            color: var(--ghibli-grass);
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        /* 发布按钮 */
+        .compose-fab {
+            position: fixed;
+            bottom: 80px;
+            right: 20px;
+            width: 56px;
+            height: 56px;
+            border-radius: 50%;
+            border: none;
+            background: linear-gradient(135deg, var(--ghibli-pink), var(--ghibli-sky));
+            font-size: 24px;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(255, 182, 193, 0.5);
+            z-index: 100;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: transform 0.3s;
+        }
+
+        .compose-fab:active { transform: scale(0.95); }
+
+        /* 加载更多 */
+        .load-more {
+            text-align: center;
+            padding: 20px;
+            color: var(--text-light);
+        }
+
+        .loading-spinner {
+            width: 24px;
+            height: 24px;
+            border: 3px solid var(--ghibli-sky-light);
+            border-top-color: var(--ghibli-grass);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: var(--text-secondary);
+        }
+
+        /* ========== 推文详情页 ========== */
+        .tweet-detail-main {
+            margin: 15px;
+            padding: 20px;
+        }
+
+        .tweet-detail-content {
+            font-size: 16px;
+            line-height: 1.8;
+            margin: 15px 0;
+            word-break: break-word;
+        }
+
+        .tweet-detail-images {
+            margin: 15px 0;
+        }
+
+        .tweet-detail-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 15px;
+        }
+
+        .tweet-tag {
+            background: var(--ghibli-sky-light);
+            color: var(--text-primary);
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 13px;
+        }
+
+        /* 评论列表 */
+        .comments-section {
+            padding: 15px;
+        }
+
+        .comments-title {
+            font-size: 16px;
+            color: var(--ghibli-grass);
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .comment-item {
+            display: flex;
+            gap: 12px;
+            padding: 15px 0;
+            border-bottom: 1px solid rgba(135, 206, 235, 0.2);
+        }
+
+        .comment-content {
+            flex: 1;
+        }
+
+        .comment-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+
+        .comment-user-name {
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        .comment-time {
+            font-size: 12px;
+            color: var(--text-light);
+        }
+
+        .comment-text {
+            font-size: 14px;
+            line-height: 1.5;
+            color: var(--text-primary);
+        }
+
+        .comment-delete-btn {
+            background: none;
+            border: none;
+            color: var(--ghibli-coral);
+            font-size: 12px;
+            cursor: pointer;
+            margin-left: 10px;
+        }
+
+        .no-comments {
+            text-align: center;
+            padding: 40px 20px;
+            color: var(--text-light);
+            font-size: 14px;
+        }
+
+        /* 评论输入栏 */
+        .comment-input-bar {
+            position: fixed;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 100%;
+            max-width: 480px;
+            padding: 12px 15px;
+            background: rgba(255, 255, 255, 0.98);
+            backdrop-filter: blur(10px);
+            border-top: 1px solid rgba(135, 206, 235, 0.3);
+            display: flex;
+            gap: 10px;
+            z-index: 100;
+        }
+
+        .comment-input-bar input {
+            flex: 1;
+            padding: 12px 16px;
+            border: 2px solid var(--ghibli-sky-light);
+            border-radius: 24px;
+            font-size: 14px;
+            transition: border-color 0.3s;
+        }
+
+        .comment-input-bar input:focus {
+            outline: none;
+            border-color: var(--ghibli-grass);
+        }
+
+        .send-btn {
+            padding: 12px 24px;
+            background: var(--ghibli-grass);
+            color: white;
+            border: none;
+            border-radius: 24px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        .send-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+        /* ========== 发布页 ========== */
+        .compose-container {
+            padding: 15px;
+        }
+
+        .compose-textarea {
+            width: 100%;
+            min-height: 200px;
+            border: none;
+            resize: none;
+            font-size: 16px;
+            line-height: 1.6;
+            padding: 15px;
+            font-family: inherit;
+            background: transparent;
+        }
+
+        .compose-textarea:focus { outline: none; }
+
+        /* 图片预览区 */
+        .compose-images {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 8px;
+            padding: 0 15px 15px;
+            /* 修改点：增加与上方输入框的间距 */
+            margin-top: 15px;
+        }
+
+        .compose-img-item {
+            position: relative;
+            aspect-ratio: 1;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        .compose-img-item img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .compose-img-delete {
+            position: absolute;
+            top: 4px;
+            right: 4px;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            background: rgba(0,0,0,0.6);
+            color: white;
+            border: none;
+            font-size: 14px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* 优化：添加图片按钮改为小的加号块 */
+        .compose-img-add {
+            aspect-ratio: 1;
+            border: 2px dashed var(--ghibli-sky);
+            border-radius: 8px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            color: var(--ghibli-sky);
+            font-size: 24px;
+            background: rgba(135, 206, 235, 0.1);
+            transition: all 0.3s;
+        }
+
+        .compose-img-add:hover {
+            border-color: var(--ghibli-grass);
+            color: var(--ghibli-grass);
+            background: rgba(144, 183, 125, 0.1);
+        }
+
+        /* 底部工具栏 */
+        .compose-toolbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 15px;
+            border-top: 1px solid rgba(135, 206, 235, 0.3);
+            background: var(--ghibli-cream);
+            gap: 10px;
+        }
+
+        .compose-tools-left {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex: 1;
+        }
+
+        .compose-tool-btn {
+            background: none;
+            border: none;
+            font-size: 20px;
+            cursor: pointer;
+            padding: 5px;
+            color: var(--text-secondary);
+            transition: color 0.3s;
+        }
+
+        .compose-tool-btn:hover { color: var(--ghibli-grass); }
+
+        /* 标签输入行 */
+        .tag-input-row {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            flex: 1;
+            padding: 5px 10px;
+            background: white;
+            border-radius: 20px;
+            border: 1px solid var(--ghibli-sky-light);
+        }
+
+        .tag-input-inline {
+            border: none;
+            background: transparent;
+            font-size: 13px;
+            outline: none;
+            flex: 1;
+            min-width: 60px;
+        }
+
+        .tag-preview {
+            font-size: 12px;
+            color: var(--ghibli-grass);
+            background: var(--ghibli-sky-light);
+            padding: 2px 8px;
+            border-radius: 10px;
+            white-space: nowrap;
+        }
+
+        /* ========== 个人主页 ========== */
+        .profile-card {
+            margin: 20px 15px;
+            padding: 30px 20px;
+            text-align: center;
+        }
+
+        .profile-avatar-wrapper {
+            position: relative;
+            display: inline-block;
+            cursor: pointer;
+        }
+
+        .profile-avatar {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            border: 4px solid var(--ghibli-grass);
+            object-fit: cover;
+            background: var(--ghibli-sky-light);
+        }
+
+        .profile-avatar-edit {
+            position: absolute;
+            bottom: 5px;
+            right: -5px;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: var(--ghibli-sky);
+            border: 2px solid white;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+        }
+
+        .profile-name {
+            font-size: 22px;
+            color: var(--text-primary);
+            margin: 15px 0 5px;
+            font-weight: 600;
+            cursor: pointer;
+            padding: 5px 15px;
+            border-radius: 20px;
+            transition: background 0.3s;
+        }
+
+        .profile-name:hover {
+            background: var(--ghibli-sky-light);
+        }
+
+        .profile-bio {
+            font-size: 14px;
+            color: var(--text-secondary);
+            margin-bottom: 20px;
+            cursor: pointer;
+            padding: 5px 15px;
+            border-radius: 20px;
+            transition: background 0.3s;
+        }
+
+        .profile-bio:hover {
+            background: var(--ghibli-sky-light);
+        }
+
+        .profile-stats {
+            display: flex;
+            justify-content: center;
+            gap: 50px;
+            padding: 20px 0;
+            border-top: 1px solid rgba(135, 206, 235, 0.3);
+            border-bottom: 1px solid rgba(135, 206, 235, 0.3);
+        }
+
+        .stat-item {
+            text-align: center;
+        }
+
+        .stat-number {
+            display: block;
+            font-size: 24px;
+            font-weight: 600;
+            color: var(--ghibli-grass);
+        }
+
+        .stat-label {
+            font-size: 12px;
+            color: var(--text-light);
+            margin-top: 4px;
+        }
+
+        .edit-input {
+            border: 2px solid var(--ghibli-sky);
+            border-radius: 8px;
+            padding: 8px 12px;
+            font-size: 14px;
+            width: 100%;
+            max-width: 200px;
+            text-align: center;
+        }
+
+        .edit-input:focus {
+            outline: none;
+            border-color: var(--ghibli-grass);
+        }
+
+        /* 登出按钮：改为文字 */
+        .logout-btn {
+            display: block;
+            margin: 20px auto;
+            padding: 10px 30px;
+            background: transparent;
+            border: 1px solid var(--ghibli-coral);
+            border-radius: 20px;
+            color: var(--ghibli-coral);
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .logout-btn:hover {
+            background: var(--ghibli-coral);
+            color: white;
+        }
+
+        .my-tweets-section {
+            padding: 15px;
+        }
+
+        .my-tweets-title {
+            font-size: 16px;
+            color: var(--ghibli-grass);
+            margin-bottom: 15px;
+            font-weight: 500;
+        }
+
+        .my-tweet-item {
+            background: white;
+            border-radius: 12px;
+            padding: 15px;
+            margin-bottom: 10px;
+            box-shadow: var(--shadow-soft);
+            cursor: pointer;
+        }
+
+        .my-tweet-content {
+            font-size: 14px;
+            line-height: 1.5;
+            margin-bottom: 8px;
+        }
+
+        .my-tweet-time {
+            font-size: 12px;
+            color: var(--text-light);
+        }
+
+        /* ========== 底部导航栏 ========== */
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 100%;
+            max-width: 480px;
+            height: 60px;
+            background: rgba(255, 255, 255, 0.98);
+            backdrop-filter: blur(10px);
+            border-top: 1px solid rgba(135, 206, 235, 0.3);
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            z-index: 100;
+        }
+
+        .nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 8px 20px;
+            color: var(--text-light);
+            transition: color 0.3s;
+        }
+
+        .nav-item.active {
+            color: var(--ghibli-grass);
+        }
+
+        .nav-icon {
+            font-size: 22px;
+        }
+
+        .nav-label {
+            font-size: 11px;
+            font-weight: 500;
+        }
+
+        /* ========== Toast 提示 ========== */
+        .toast {
+            position: fixed;
+            top: 80px;
+            left: 50%;
+            transform: translateX(-50%);
+            padding: 12px 24px;
+            border-radius: 24px;
+            font-size: 14px;
+            z-index: 1000;
+            animation: fadeInDown 0.3s ease;
+            max-width: 300px;
+            text-align: center;
+        }
+
+        .toast-success { background: var(--ghibli-grass); color: white; }
+        .toast-error { background: var(--ghibli-coral); color: white; }
+        .toast-info { background: var(--ghibli-sky); color: white; }
+
+        @keyframes fadeInDown {
+            from { opacity: 0; transform: translate(-50%, -20px); }
+            to { opacity: 1; transform: translate(-50%, 0); }
+        }
+
+        /* ========== 弹窗 ========== */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 16px;
+            padding: 25px;
+            max-width: 320px;
+            width: 90%;
+            text-align: center;
+        }
+
+        .modal-title {
+            font-size: 18px;
+            margin-bottom: 10px;
+            color: var(--text-primary);
+        }
+
+        .modal-text {
+            font-size: 14px;
+            color: var(--text-secondary);
+            margin-bottom: 20px;
+        }
+
+        .modal-actions {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+        }
+
+        .modal-btn {
+            padding: 10px 25px;
+            border-radius: 20px;
+            border: none;
+            font-size: 14px;
+            cursor: pointer;
+        }
+
+        .modal-btn-cancel { background: #f0f0f0; color: var(--text-primary); }
+        .modal-btn-confirm { background: var(--ghibli-coral); color: white; }
+
+        /* 图片预览弹窗 */
+        .image-preview-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.9);
+            z-index: 2000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .image-preview-modal img {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain;
+        }
+
+        .image-preview-close {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            font-size: 30px;
+            color: white;
+            background: none;
+            border: none;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <!-- ===== 主应用容器 ===== -->
+    <div id="app" x-data="App()" x-init="init()" x-cloak>
+
+        <!-- ========== 1. 登录页 ========== -->
+        <div x-show="page === 'login'" x-transition class="auth-page">
+            <div class="ghibli-card auth-card">
+                <div class="auth-illustration">
+                    <svg class="totoro-icon" viewBox="0 0 200 120">
+                        <ellipse cx="100" cy="70" rx="60" ry="45" fill="#90B77D"/>
+                        <circle cx="80" cy="50" r="8" fill="#333"/>
+                        <circle cx="120" cy="50" r="8" fill="#333"/>
+                        <ellipse cx="100" cy="75" rx="25" ry="18" fill="#FFF8E7"/>
+                        <path d="M85 70 L100 85 L115 70" stroke="#333" stroke-width="2" fill="none"/>
+                    </svg>
+                </div>
+                <h1 class="auth-title">欢迎回来</h1>
+                <form @submit.prevent="handleLogin()">
+                    <div class="form-group">
+                        <label>用户名</label>
+                        <input type="text" x-model="loginForm.user_name" placeholder="请输入用户名" required>
+                    </div>
+                    <div class="form-group">
+                        <label>密码</label>
+                        <input type="password" x-model="loginForm.password" placeholder="请输入密码" required>
+                    </div>
+                    <button type="submit" class="ghibli-btn ghibli-btn-primary" style="width: 100%" :disabled="loading">
+                        <span x-text="loading ? '登录中...' : '登录'"></span>
+                    </button>
+                </form>
+                <div class="auth-footer">
+                    还没有账号？<a href="#" @click.prevent="page = 'register'">立即注册</a>
+                </div>
+            </div>
+        </div>
+
+        <!-- ========== 2. 注册页 ========== -->
+        <div x-show="page === 'register'" x-transition class="auth-page">
+            <div class="ghibli-card auth-card">
+                <div class="auth-illustration">
+                    <svg class="totoro-icon" viewBox="0 0 200 120">
+                        <ellipse cx="100" cy="70" rx="60" ry="45" fill="#87CEEB"/>
+                        <circle cx="80" cy="50" r="8" fill="#333"/>
+                        <circle cx="120" cy="50" r="8" fill="#333"/>
+                        <ellipse cx="100" cy="75" rx="25" ry="18" fill="#FFF8E7"/>
+                        <path d="M85 70 L100 85 L115 70" stroke="#333" stroke-width="2" fill="none"/>
+                    </svg>
+                </div>
+                <h1 class="auth-title">创建账号</h1>
+                <form @submit.prevent="handleRegister()">
+                    <div class="form-group">
+                        <label>用户名</label>
+                        <input type="text" x-model="registerForm.user_name" placeholder="请输入用户名" required>
+                    </div>
+                    <div class="form-group">
+                        <label>邮箱</label>
+                        <input type="email" x-model="registerForm.email" placeholder="请输入邮箱" required>
+                    </div>
+                    <div class="form-group">
+                        <label>手机号（可选）</label>
+                        <input type="text" x-model="registerForm.phone" placeholder="请输入手机号">
+                    </div>
+                    <div class="form-group">
+                        <label>密码</label>
+                        <input type="password" x-model="registerForm.password" placeholder="请输入密码" required>
+                    </div>
+                    <button type="submit" class="ghibli-btn ghibli-btn-primary" style="width: 100%" :disabled="loading">
+                        <span x-text="loading ? '注册中...' : '注册'"></span>
+                    </button>
+                </form>
+                <div class="auth-footer">
+                    已有账号？<a href="#" @click.prevent="page = 'login'">立即登录</a>
+                </div>
+            </div>
+        </div>
+
+        <!-- ========== 3. 主页（推文列表） ========== -->
+        <div x-show="page === 'home'" x-transition class="page-container">
+            <header class="page-header">
+                <!-- 搜索状态：显示搜索栏 -->
+                <template x-if="showSearch">
+                    <div class="header-search-inline">
+                        <button class="header-btn" @click="showSearch = false; searchKeyword = ''">←</button>
+                        <input type="text" class="search-input-inline"
+                               x-model="searchKeyword"
+                               placeholder="搜索推文..."
+                               @keyup.enter="searchTweets()"
+                               autofocus>
+                        <button class="header-btn" @click="searchTweets()">🔍</button>
+                    </div>
+                </template>
+
+                <!-- 正常状态：显示标题和搜索按钮 -->
+                <template x-if="!showSearch">
+                    <div style="display: flex; align-items: center; width: 100%; justify-content: space-between;">
+                        <h1 style="flex: 1;">🏡 推文</h1>
+                        <button class="header-btn" @click="showSearch = true">🔍</button>
+                    </div>
+                </template>
+            </header>
+
+            <div class="tweet-list-container">
+                <!-- 推文卡片 -->
+                <template x-for="tweet in tweets" :key="tweet.id">
+                    <div class="ghibli-card tweet-card" @click="viewTweetDetail(tweet.id)">
+                        <div class="tweet-header">
+                            <img class="avatar-circle"
+                                 :src="getUserAvatar(tweet.creater_id)"
+                                 @error="$event.target.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 48 48%22%3E%3Ccircle cx=%2224%22 cy=%2224%22 r=%2224%22 fill=%22%2387CEEB%22/%3E%3C/svg%3E'">
+                            <div class="tweet-user-info">
+                                <!-- 修改点：使用getUserDisplayName获取真实用户名 -->
+                                <span class="tweet-user-name" x-text="getUserDisplayName(tweet)"></span>
+                                <span class="tweet-time" x-text="formatTime(tweet.created_at)"></span>
+                            </div>
+                        </div>
+
+                        <div class="tweet-content">
+                            <p x-text="getTweetDisplayContent(tweet)"></p>
+                            <button x-show="isTweetLong(tweet.tweet)"
+                                    class="tweet-more-btn"
+                                    @click.stop="toggleTweetExpand(tweet.id)">
+                                <span x-text="expandedTweets[tweet.id] ? '收起' : '...More'"></span>
+                            </button>
+                        </div>
+
+                        <!-- 图片展示 -->
+                        <div x-show="tweet.image_ids && tweet.image_ids.length > 0"
+                             :class="getImageGridClass(tweet.image_ids.length)"
+                             class="tweet-images">
+                            <template x-for="(imgId, index) in getDisplayImages(tweet.image_ids)" :key="imgId">
+                                <img class="tweet-img"
+                                     :src="'/api/v2/image/' + imgId"
+                                     @click.stop="previewImage(imgId)"
+                                     @error="$event.target.style.display='none'">
+                            </template>
+                        </div>
+
+                        <div class="tweet-actions">
+                            <button class="tweet-action-btn" @click.stop="viewTweetDetail(tweet.id)">
+                                💬 <span x-text="tweet.comment_count || ''"></span>
+                            </button>
+                            <button class="tweet-action-btn" disabled>🔄</button>
+                            <button class="tweet-action-btn" disabled>❤️</button>
+
+                            <!-- 标签显示在最右侧 -->
+                            <div x-show="tweet.tags && tweet.tags.length > 0" class="tweet-tags-display">
+                                <span>🏷️</span>
+                                <span x-text="formatTags(tweet.tags)"></span>
+                            </div>
+                        </div>
+                    </div>
+                </template>
+
+                <!-- 加载更多 -->
+                <div x-show="tweetsLoading" class="load-more">
+                    <div class="loading-spinner"></div>
+                </div>
+
+                <!-- 空状态 -->
+                <div x-show="!tweetsLoading && tweets.length === 0" class="empty-state">
+                    <p>还没有推文</p>
+                    <p style="font-size: 12px; margin-top: 5px;">快来发布第一条吧！</p>
+                </div>
+            </div>
+
+            <!-- 发布按钮 -->
+            <button class="compose-fab" @click="openCompose()">✏️</button>
+        </div>
+
+        <!-- ========== 4. 推文详情页 ========== -->
+        <div x-show="page === 'detail'" x-transition class="page-container">
+            <header class="page-header">
+                <button class="header-btn" @click="goBack()">←</button>
+                <h1>推文详情</h1>
+                <div style="width: 30px;"></div>
+            </header>
+
+            <!-- 推文主体 -->
+            <div class="ghibli-card tweet-detail-main">
+                <div class="tweet-header">
+                    <img class="avatar-circle" :src="getUserAvatar(currentTweet.creater_id)">
+                    <div class="tweet-user-info">
+                        <span class="tweet-user-name" x-text="getUserDisplayName(currentTweet)"></span>
+                        <span class="tweet-time" x-text="formatTime(currentTweet.created_at)"></span>
+                    </div>
+                </div>
+
+                <div class="tweet-detail-content" x-text="currentTweet.tweet"></div>
+
+                <!-- 图片展示 -->
+                <div x-show="currentTweet.image_ids && currentTweet.image_ids.length > 0"
+                     :class="getImageGridClass(currentTweet.image_ids ? currentTweet.image_ids.length : 0)"
+                     class="tweet-images tweet-detail-images">
+                    <template x-for="imgId in currentTweet.image_ids" :key="imgId">
+                        <img class="tweet-img"
+                             :src="'/api/v2/image/' + imgId"
+                             @click="previewImage(imgId)"
+                             @error="$event.target.style.display='none'">
+                    </template>
+                </div>
+
+                <div x-show="currentTweet.tags" class="tweet-detail-tags">
+                    <template x-for="tag in parseTags(currentTweet.tags)" :key="tag">
+                        <span class="tweet-tag" x-text="'#' + tag"></span>
+                    </template>
+                </div>
+
+                <div class="tweet-actions" style="margin-top: 15px;">
+                    <button class="tweet-action-btn">💬 <span x-text="comments.length"></span></button>
+                    <button class="tweet-action-btn" disabled>🔄</button>
+                    <button class="tweet-action-btn" disabled>❤️</button>
+                    <button x-show="currentTweet.creater_id === user.id"
+                            class="tweet-action-btn"
+                            style="color: var(--ghibli-coral); margin-left: auto;"
+                            @click="showDeleteTweetModal = true">
+                        🗑️ 删除
+                    </button>
+                </div>
+            </div>
+
+            <!-- 评论列表 -->
+            <div class="comments-section">
+                <h3 class="comments-title">💬 评论</h3>
+
+                <template x-for="comment in comments" :key="comment.id">
+                    <div class="comment-item">
+                        <img class="avatar-circle avatar-small" :src="getUserAvatar(comment.creater_id)">
+                        <div class="comment-content">
+                            <div class="comment-header">
+                                <span class="comment-user-name" x-text="comment.creater_name"></span>
+                                <div>
+                                    <span class="comment-time" x-text="formatTime(comment.created_at)"></span>
+                                    <button x-show="comment.creater_id === user.id"
+                                            class="comment-delete-btn"
+                                            @click="deleteComment(comment.id)">
+                                        删除
+                                    </button>
+                                </div>
+                            </div>
+                            <p class="comment-text" x-text="comment.content"></p>
+                        </div>
+                    </div>
+                </template>
+
+                <div x-show="comments.length === 0 && !commentsLoading" class="no-comments">
+                    还没有评论，快来抢沙发吧！
+                </div>
+            </div>
+
+            <!-- 评论输入栏 -->
+            <div class="comment-input-bar">
+                <input type="text"
+                       x-model="newComment"
+                       placeholder="写下你的评论..."
+                       @keyup.enter="submitComment()">
+                <button class="send-btn"
+                        :disabled="!newComment.trim() || commentSubmitting"
+                        @click="submitComment()">
+                    发送
+                </button>
+            </div>
+        </div>
+
+        <!-- ========== 5. 发布推文页 ========== -->
+        <div x-show="page === 'compose'" x-transition class="page-container">
+            <header class="page-header">
+                <button class="header-btn" @click="goBack()">←</button>
+                <h1>发布推文</h1>
+                <div style="width: 30px;"></div>
+            </header>
+
+            <div class="ghibli-card compose-container">
+                <textarea class="compose-textarea"
+                          x-model="composeContent"
+                          placeholder="写下你的想法...">
+                </textarea>
+            </div>
+
+            <!-- 图片预览 -->
+            <div x-show="composeImages.length > 0 || composeImages.length < 9" class="compose-images">
+                <template x-for="(img, index) in composeImages" :key="index">
+                    <div class="compose-img-item">
+                        <img :src="img.preview">
+                        <button class="compose-img-delete" @click="removeImage(index)">✕</button>
+                    </div>
+                </template>
+
+                <!-- 添加图片按钮 -->
+                <div x-show="composeImages.length < 9" class="compose-img-add" @click="selectImage()">
+                    <span>+</span>
+                </div>
+            </div>
+
+            <!-- 工具栏 -->
+            <div class="compose-toolbar">
+                <div class="compose-tools-left">
+                    <!-- 标签输入框在右侧展开 -->
+                    <button class="compose-tool-btn" @click="showTagInput = !showTagInput">🏷️</button>
+
+                    <!-- 标签输入行 -->
+                    <div x-show="showTagInput" x-transition class="tag-input-row">
+                        <template x-for="(tag, index) in composeTags" :key="index">
+                            <span class="tag-preview">
+                                #<span x-text="tag"></span>
+                                <button @click="removeTag(index)" style="background:none; border:none; cursor:pointer; margin-left:2px; font-size:10px;">✕</button>
+                            </span>
+                        </template>
+                        <input type="text"
+                               class="tag-input-inline"
+                               placeholder="输入标签"
+                               x-model="tagInputValue"
+                               @keyup.enter="addTag()"
+                               @keyup.comma="addTag()">
+                    </div>
+                </div>
+                <button class="ghibli-btn ghibli-btn-primary"
+                        :disabled="(!composeContent.trim() && composeImages.length === 0) || composeSubmitting"
+                        @click="publishTweet()">
+                    <span x-text="composeSubmitting ? '发布中...' : '发布'"></span>
+                </button>
+            </div>
+
+            <!-- 隐藏的文件输入 -->
+            <input type="file" id="compose-image-input" accept="image/*" multiple style="display: none" @change="handleImageSelect($event)">
+        </div>
+
+        <!-- ========== 6. 个人主页 ========== -->
+        <div x-show="page === 'profile'" x-transition class="page-container">
+            <header class="page-header">
+                <h1>我的</h1>
+                <button class="logout-btn" style="padding: 5px 10px; margin: 0; border-radius: 12px; font-size: 13px;" @click="handleLogout()">退出</button>
+            </header>
+
+            <!-- 个人信息卡片 -->
+            <div class="ghibli-card profile-card">
+                <div class="profile-avatar-wrapper" @click="uploadAvatar()">
+                    <img class="profile-avatar" :src="getAvatarUrl(user.avatar_id)">
+                    <div class="profile-avatar-edit">📷</div>
+                </div>
+
+                <!-- 名称编辑 -->
+                <div x-show="!editingName" class="profile-name" @click="startEditName()">
+                    <span x-text="user.user_name || '点击编辑'"></span>
+                </div>
+                <div x-show="editingName" style="margin: 15px 0 5px;">
+                    <input type="text"
+                           class="edit-input"
+                           x-model="editNameValue"
+                           @blur="saveName()"
+                           @keyup.enter="saveName()"
+                           placeholder="输入名称">
+                </div>
+
+                <!-- 签名编辑 -->
+                <div x-show="!editingBio" class="profile-bio" @click="startEditBio()">
+                    <span x-text="user.whats_up || '点击添加签名'"></span>
+                </div>
+                <div x-show="editingBio" style="margin-bottom: 20px;">
+                    <input type="text"
+                           class="edit-input"
+                           style="max-width: 250px;"
+                           x-model="editBioValue"
+                           @blur="saveBio()"
+                           @keyup.enter="saveBio()"
+                           placeholder="输入签名">
+                </div>
+
+                <div class="profile-stats">
+                    <div class="stat-item">
+                        <span class="stat-number" x-text="myTweets.length"></span>
+                        <span class="stat-label">推文</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-number">0</span>
+                        <span class="stat-label">关注</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-number">0</span>
+                        <span class="stat-label">粉丝</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 我的推文 -->
+            <div class="my-tweets-section">
+                <h3 class="my-tweets-title">📝 我的推文</h3>
+
+                <template x-for="tweet in myTweets" :key="tweet.id">
+                    <div class="my-tweet-item" @click="viewTweetDetail(tweet.id)">
+                        <p class="my-tweet-content" x-text="truncateText(tweet.tweet, 100)"></p>
+                        <span class="my-tweet-time" x-text="formatTime(tweet.created_at)"></span>
+                    </div>
+                </template>
+
+                <div x-show="myTweets.length === 0" class="no-comments">
+                    还没有发布过推文
+                </div>
+            </div>
+
+            <input type="file" id="avatar-input" accept="image/*" style="display: none" @change="handleAvatarUpload($event)">
+        </div>
+
+        <!-- ========== 底部导航栏 ========== -->
+        <div x-show="['home', 'profile'].includes(page)" class="bottom-nav">
+            <button class="nav-item" :class="{ active: page === 'home' }" @click="navigateToHome()">
+                <span class="nav-icon">🏠</span>
+                <span class="nav-label">推文</span>
+            </button>
+            <button class="nav-item" @click="showToast('聊天功能开发中', 'info')">
+                <span class="nav-icon">💬</span>
+                <span class="nav-label">聊天</span>
+            </button>
+            <button class="nav-item" :class="{ active: page === 'profile' }" @click="navigateToProfile()">
+                <span class="nav-icon">👤</span>
+                <span class="nav-label">我的</span>
+            </button>
+        </div>
+
+        <!-- ========== Toast 提示 ========== -->
+        <div x-show="toast.show"
+             x-transition
+             class="toast"
+             :class="'toast-' + toast.type"
+             x-text="toast.message">
+        </div>
+
+        <!-- ========== 删除确认弹窗 ========== -->
+        <div x-show="showDeleteTweetModal" class="modal-overlay" @click.self="showDeleteTweetModal = false">
+            <div class="modal-content">
+                <h3 class="modal-title">确认删除</h3>
+                <p class="modal-text">确定要删除这条推文吗？删除后无法恢复。</p>
+                <div class="modal-actions">
+                    <button class="modal-btn modal-btn-cancel" @click="showDeleteTweetModal = false">取消</button>
+                    <button class="modal-btn modal-btn-confirm" @click="deleteCurrentTweet()">删除</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 图片预览弹窗 -->
+        <div x-show="previewImageId" class="image-preview-modal" @click="previewImageId = null">
+            <button class="image-preview-close" @click="previewImageId = null">✕</button>
+            <img :src="'/api/v2/image/' + previewImageId" @click.stop>
+        </div>
+    </div>
+
+    <!-- ===== Alpine.js ===== -->
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+
+    <!-- ===== 应用逻辑 ===== -->
+    <script>
+        function App() {
+            return {
+                // ========== 状态 ==========
+                page: 'login',
+                loading: false,
+                token: localStorage.getItem('token') || null,
+                user: JSON.parse(localStorage.getItem('user') || '{}'),
+                pageHistory: ['login'],
+                // 用户信息缓存 { id: { user_name, avatar_id } }
+                usersCache: {},
+
+                // 表单
+                loginForm: { user_name: '', password: '' },
+                registerForm: { user_name: '', email: '', phone: '', password: '' },
+
+                // 搜索
+                showSearch: false,
+                searchKeyword: '',
+
+                // 推文列表
+                tweets: [],
+                tweetsLoading: false,
+                tweetsPage: 0,
+                hasMoreTweets: true,
+                expandedTweets: {},
+
+                // 推文详情
+                currentTweet: {},
+                comments: [],
+                commentsLoading: false,
+                newComment: '',
+                commentSubmitting: false,
+                showDeleteTweetModal: false,
+
+                // 发布推文
+                composeContent: '',
+                composeImages: [],
+                composeImageIds: [],
+                composeSubmitting: false,
+                showTagInput: false,
+                composeTags: [],
+                tagInputValue: '',
+
+                // 个人主页
+                myTweets: [],
+                editingName: false,
+                editingBio: false,
+                editNameValue: '',
+                editBioValue: '',
+
+                // 图片预览
+                previewImageId: null,
+
+                // Toast
+                toast: { show: false, message: '', type: 'info' },
+
+                // ========== 初始化 ==========
+                init() {
+                    console.log('[App] Initializing');
+
+                    if (this.token && this.user.id) {
+                        this.page = 'home';
+                        this.loadTweets();
+                        this.loadUserInfo();
+                    }
+
+                    this.setupScrollListener();
+                },
+
+                // ========== API 封装 ==========
+                async api(endpoint, method = 'GET', data = null, isFormData = false) {
+                    const url = '/api' + endpoint;
+                    const opts = {
+                        method,
+                        headers: {}
+                    };
+
+                    if (!isFormData) {
+                        opts.headers['Content-Type'] = 'application/json';
+                    }
+
+                    if (this.token) {
+                        opts.headers['Authorization'] = 'Bearer ' + this.token;
+                    }
+
+                    if (data) {
+                        if (isFormData) {
+                            opts.body = data;
+                        } else {
+                            opts.body = JSON.stringify(data);
+                        }
+                    }
+
+                    console.log('[API]', method, url);
+
+                    try {
+                        const res = await fetch(url, opts);
+
+                        if (!res.ok) {
+                            const err = await res.json().catch(() => ({ detail: '请求失败' }));
+                            throw new Error(err.detail || `HTTP ${res.status}`);
+                        }
+
+                        const text = await res.text();
+                        if (!text) return null;
+                        return JSON.parse(text);
+                    } catch (error) {
+                        console.error('[API Error]', error);
+                        throw error;
+                    }
+                },
+
+                // ========== 认证 ==========
+                async handleLogin() {
+                    if (this.loading) return;
+
+                    if (!this.loginForm.user_name || !this.loginForm.password) {
+                        this.showToast('请填写用户名和密码', 'error');
+                        return;
+                    }
+
+                    this.loading = true;
+
+                    try {
+                        const res = await this.api('/v1/users/login', 'POST', {
+                            user_name: this.loginForm.user_name,
+                            password: this.loginForm.password
+                        });
+
+                        this.token = res.access_token;
+                        this.user = {
+                            id: res.user_id,
+                            user_name: res.user_name
+                        };
+
+                        localStorage.setItem('token', this.token);
+                        localStorage.setItem('user', JSON.stringify(this.user));
+
+                        this.showToast('登录成功！', 'success');
+                        this.page = 'home';
+                        this.pageHistory = ['home'];
+
+                        this.loadTweets();
+                        this.loadUserInfo();
+
+                        this.loginForm = { user_name: '', password: '' };
+                    } catch (error) {
+                        this.showToast('登录失败：' + error.message, 'error');
+                    } finally {
+                        this.loading = false;
+                    }
+                },
+
+                async handleRegister() {
+                    if (this.loading) return;
+
+                    if (!this.registerForm.user_name || !this.registerForm.email || !this.registerForm.password) {
+                        this.showToast('请填写必填项', 'error');
+                        return;
+                    }
+
+                    this.loading = true;
+
+                    try {
+                        await this.api('/v1/users/create', 'POST', {
+                            user_name: this.registerForm.user_name,
+                            email: this.registerForm.email,
+                            phone: this.registerForm.phone || '',
+                            password: this.registerForm.password
+                        });
+
+                        this.showToast('注册成功，请登录！', 'success');
+                        this.page = 'login';
+
+                        this.registerForm = { user_name: '', email: '', phone: '', password: '' };
+                    } catch (error) {
+                        this.showToast('注册失败：' + error.message, 'error');
+                    } finally {
+                        this.loading = false;
+                    }
+                },
+
+                async handleLogout() {
+                    if (!confirm('确定要退出登录吗？')) return;
+
+                    try {
+                        await this.api('/v2/users/logout', 'GET');
+                    } catch (error) {
+                        console.error('Logout API error:', error);
+                    }
+
+                    this.token = null;
+                    this.user = {};
+                    this.tweets = [];
+                    this.myTweets = [];
+                    this.usersCache = {}; // 清空用户缓存
+                    this.page = 'login';
+                    this.pageHistory = ['login'];
+                    localStorage.removeItem('token');
+                    localStorage.removeItem('user');
+                    this.showToast('已退出登录', 'info');
+                },
+
+                async loadUserInfo() {
+                    if (!this.user.id) return;
+
+                    try {
+                        const info = await this.api(`/v2/users/get/${this.user.id}`);
+                        this.user = { ...this.user, ...info };
+                        localStorage.setItem('user', JSON.stringify(this.user));
+                    } catch (error) {
+                        console.error('[Load User Info Error]', error);
+                    }
+                },
+
+                // ========== 用户信息获取逻辑 ==========
+                // 批量获取用户信息并缓存
+                async fetchUsersInfo(userIds) {
+                    const uniqueIds = [...new Set(userIds)].filter(id => id && !this.usersCache[id]);
+                    if (uniqueIds.length === 0) return;
+
+                    // 并行请求用户信息
+                    const promises = uniqueIds.map(id =>
+                        this.api(`/v2/users/get/${id}`)
+                            .then(userInfo => {
+                                if (userInfo) {
+                                    // 存入缓存
+                                    this.usersCache[id] = {
+                                        user_name: userInfo.user_name,
+                                        avatar_id: userInfo.avatar_id
+                                    };
+                                }
+                            })
+                            .catch(err => console.error(`Failed to fetch user ${id}`, err))
+                    );
+
+                    await Promise.all(promises);
+                },
+
+                // 获取用户显示名称
+                getUserDisplayName(tweet) {
+                    // 优先使用缓存中的名称
+                    if (tweet.creater_id && this.usersCache[tweet.creater_id]) {
+                        return this.usersCache[tweet.creater_id].user_name;
+                    }
+                    // 其次使用推文自带的名称（如果有）
+                    if (tweet.user_name) return tweet.user_name;
+                    return '加载中...';
+                },
+
+                // 获取用户头像
+                getUserAvatar(userId) {
+                    if (!userId) return this.getDefaultAvatar();
+                    // 优先使用缓存
+                    if (this.usersCache[userId] && this.usersCache[userId].avatar_id) {
+                        return '/api/v2/image/' + this.usersCache[userId].avatar_id;
+                    }
+                    return this.getDefaultAvatar();
+                },
+
+                getDefaultAvatar() {
+                    return 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48"%3E%3Ccircle cx="24" cy="24" r="24" fill="%2387CEEB"/%3E%3Ctext x="24" y="30" text-anchor="middle" font-size="20" fill="white"%3E👤%3C/text%3E%3C/svg%3E';
+                },
+
+                // ========== 推文列表 ==========
+                async loadTweets() {
+                    if (this.tweetsLoading || !this.hasMoreTweets) return;
+
+                    this.tweetsLoading = true;
+
+                    try {
+                        const data = await this.api(`/v2/tweet/list?skip=${this.tweetsPage * 10}&limit=10&order=desc`);
+
+                        if (!data || data.length === 0) {
+                            this.hasMoreTweets = false;
+                        } else {
+                            this.tweets.push(...data);
+
+                            // 关键步骤：收集所有创建者ID并获取信息
+                            const creatorIds = data.map(t => t.creater_id);
+                            this.fetchUsersInfo(creatorIds);
+
+                            if (data.length < 10) {
+                                this.hasMoreTweets = false;
+                            } else {
+                                this.tweetsPage++;
+                            }
+                        }
+                    } catch (error) {
+                        this.showToast('加载失败', 'error');
+                        this.hasMoreTweets = false;
+                    } finally {
+                        this.tweetsLoading = false;
+                    }
+                },
+
+                refreshTweets() {
+                    this.tweets = [];
+                    this.tweetsPage = 0;
+                    this.hasMoreTweets = true;
+                    this.expandedTweets = {};
+                    this.loadTweets();
+                },
+
+                async searchTweets() {
+                    if (!this.searchKeyword.trim()) {
+                        this.refreshTweets();
+                        return;
+                    }
+
+                    this.tweets = [];
+                    this.tweetsLoading = true;
+                    this.hasMoreTweets = false;
+
+                    try {
+                        const res = await this.api(`/v2/tweet/search/?keyword=${encodeURIComponent(this.searchKeyword)}&skip=0&limit=50`);
+                        this.tweets = res.results || [];
+
+                        // 搜索结果也需要获取用户信息
+                        if (this.tweets.length > 0) {
+                             const creatorIds = this.tweets.map(t => t.creater_id);
+                             this.fetchUsersInfo(creatorIds);
+                        }
+                    } catch (error) {
+                        this.showToast('搜索失败', 'error');
+                    } finally {
+                        this.tweetsLoading = false;
+                    }
+                },
+
+                setupScrollListener() {
+                    let scrollTimeout;
+                    window.addEventListener('scroll', () => {
+                        if (this.page !== 'home') return;
+
+                        clearTimeout(scrollTimeout);
+                        scrollTimeout = setTimeout(() => {
+                            const scrollTop = window.scrollY;
+                            const scrollHeight = document.documentElement.scrollHeight;
+                            const clientHeight = window.innerHeight;
+
+                            if (scrollHeight - scrollTop - clientHeight < 300) {
+                                this.loadTweets();
+                            }
+                        }, 200);
+                    });
+                },
+
+                // ========== 导航刷新 ==========
+                navigateToHome() {
+                    if (this.page === 'home') {
+                        this.refreshTweets();
+                    } else {
+                        this.page = 'home';
+                        this.pageHistory.push('home');
+                    }
+                },
+
+                navigateToProfile() {
+                    if (this.page === 'profile') {
+                        this.loadMyProfile();
+                    } else {
+                        this.page = 'profile';
+                        this.pageHistory.push('profile');
+                        this.loadMyProfile();
+                    }
+                },
+
+                // ========== 推文详情 ==========
+                async viewTweetDetail(tweetId) {
+                    this.page = 'detail';
+                    this.pageHistory.push('detail');
+                    this.currentTweet = {};
+                    this.comments = [];
+                    this.newComment = '';
+
+                    const tweetFromList = this.tweets.find(t => t.id === tweetId);
+                    if (tweetFromList) {
+                        this.currentTweet = { ...tweetFromList };
+                    }
+
+                    try {
+                        const tweetData = await this.api(`/v2/tweet/get/${tweetId}`);
+                        this.currentTweet = { ...this.currentTweet, ...tweetData };
+
+                        // 确保作者信息已加载
+                        if (this.currentTweet.creater_id) {
+                            this.fetchUsersInfo([this.currentTweet.creater_id]);
+                        }
+                    } catch (error) {
+                        this.showToast('推文加载失败', 'error');
+                        this.goBack();
+                        return;
+                    }
+
+                    this.loadComments(tweetId);
+                },
+
+                async loadComments(tweetId) {
+                    this.commentsLoading = true;
+
+                    try {
+                        this.comments = await this.api(`/v2/comment/list/${tweetId}?skip=0&limit=50`);
+                    } catch (error) {
+                        console.error('[Load Comments Error]', error);
+                        this.comments = [];
+                    } finally {
+                        this.commentsLoading = false;
+                    }
+                },
+
+                async submitComment() {
+                    if (!this.newComment.trim() || this.commentSubmitting) return;
+
+                    this.commentSubmitting = true;
+
+                    try {
+                        await this.api('/v2/comment/create', 'POST', {
+                            tweet_id: this.currentTweet.id,
+                            content: this.newComment,
+                            tags: ''
+                        });
+
+                        this.newComment = '';
+                        await this.loadComments(this.currentTweet.id);
+                        this.showToast('评论成功', 'success');
+                    } catch (error) {
+                        this.showToast('评论失败：' + error.message, 'error');
+                    } finally {
+                        this.commentSubmitting = false;
+                    }
+                },
+
+                async deleteComment(commentId) {
+                    if (!confirm('确定要删除这条评论吗？')) return;
+
+                    try {
+                        await this.api(`/v2/comment/delete/${commentId}`, 'DELETE');
+                        await this.loadComments(this.currentTweet.id);
+                        this.showToast('评论已删除', 'success');
+                    } catch (error) {
+                        this.showToast('删除失败', 'error');
+                    }
+                },
+
+                async deleteCurrentTweet() {
+                    this.showDeleteTweetModal = false;
+
+                    try {
+                        await this.api(`/v2/tweet/delete/${this.currentTweet.id}`, 'DELETE');
+                        this.showToast('推文已删除', 'success');
+                        this.refreshTweets();
+                        this.goBack();
+                    } catch (error) {
+                        this.showToast('删除失败', 'error');
+                    }
+                },
+
+                // ========== 发布推文 ==========
+                openCompose() {
+                    this.page = 'compose';
+                    this.pageHistory.push('compose');
+                    this.composeContent = '';
+                    this.composeImages = [];
+                    this.composeImageIds = [];
+                    this.composeTags = [];
+                    this.tagInputValue = '';
+                    this.showTagInput = false;
+                },
+
+                selectImage() {
+                    document.getElementById('compose-image-input').click();
+                },
+
+                async handleImageSelect(event) {
+                    const files = event.target.files;
+                    if (!files || files.length === 0) return;
+
+                    const remaining = 9 - this.composeImages.length;
+                    const toUpload = Array.from(files).slice(0, remaining);
+
+                    for (const file of toUpload) {
+                        if (file.size > 5 * 1024 * 1024) {
+                            this.showToast('图片大小不能超过 5MB', 'error');
+                            continue;
+                        }
+
+                        const preview = URL.createObjectURL(file);
+                        const formData = new FormData();
+                        formData.append('file', file);
+
+                        try {
+                            const res = await this.api('/v2/image/upload', 'POST', formData, true);
+                            this.composeImages.push({
+                                id: res.id,
+                                preview: preview,
+                                file: file
+                            });
+                            this.composeImageIds.push(res.id);
+                        } catch (error) {
+                            this.showToast('图片上传失败', 'error');
+                            URL.revokeObjectURL(preview);
+                        }
+                    }
+
+                    event.target.value = '';
+                },
+
+                removeImage(index) {
+                    URL.revokeObjectURL(this.composeImages[index].preview);
+                    this.composeImages.splice(index, 1);
+                    this.composeImageIds.splice(index, 1);
+                },
+
+                addTag() {
+                    const tag = this.tagInputValue.trim().replace(/,/g, '');
+                    if (tag && !this.composeTags.includes(tag)) {
+                        this.composeTags.push(tag);
+                    }
+                    this.tagInputValue = '';
+                },
+
+                removeTag(index) {
+                    this.composeTags.splice(index, 1);
+                },
+
+                async publishTweet() {
+                    if ((!this.composeContent.trim() && this.composeImages.length === 0) || this.composeSubmitting) return;
+
+                    this.composeSubmitting = true;
+
+                    try {
+                        await this.api('/v2/tweet/create', 'POST', {
+                            tweet: this.composeContent,
+                            tags: this.composeTags.join(','),
+                            is_published: true,
+                            image_ids: this.composeImageIds
+                        });
+
+                        this.showToast('发布成功！', 'success');
+                        this.composeContent = '';
+                        this.composeImages = [];
+                        this.composeImageIds = [];
+                        this.composeTags = [];
+
+                        this.page = 'home';
+                        this.pageHistory.pop();
+                        this.refreshTweets();
+                    } catch (error) {
+                        this.showToast('发布失败：' + error.message, 'error');
+                    } finally {
+                        this.composeSubmitting = false;
+                    }
+                },
+
+                // ========== 个人主页 ==========
+                async loadMyProfile() {
+                    if (!this.user.id) return;
+
+                    await this.loadUserInfo();
+
+                    try {
+                        this.myTweets = await this.api(`/v2/tweet/list?creater_id=${this.user.id}&limit=20&order=desc`);
+                    } catch (error) {
+                        console.error('[Load My Tweets Error]', error);
+                    }
+                },
+
+                uploadAvatar() {
+                    document.getElementById('avatar-input').click();
+                },
+
+                async handleAvatarUpload(event) {
+                    const file = event.target.files[0];
+                    if (!file) return;
+
+                    if (file.size > 5 * 1024 * 1024) {
+                        this.showToast('图片大小不能超过 5MB', 'error');
+                        return;
+                    }
+
+                    const formData = new FormData();
+                    formData.append('file', file);
+
+                    try {
+                        const res = await this.api('/v2/image/upload', 'POST', formData, true);
+
+                        await this.api(`/v2/users/put/${this.user.id}`, 'PUT', {
+                            user_name: this.user.user_name,
+                            email: this.user.email,
+                            phone: this.user.phone || '',
+                            password: '',
+                            is_active: true,
+                            whats_up: this.user.whats_up || '',
+                            avatar_id: res.id
+                        });
+
+                        await this.loadUserInfo();
+                        // 更新缓存
+                        this.usersCache[this.user.id] = {
+                             user_name: this.user.user_name,
+                             avatar_id: res.id
+                        };
+                        this.showToast('头像更新成功！', 'success');
+                    } catch (error) {
+                        this.showToast('上传失败：' + error.message, 'error');
+                    }
+
+                    event.target.value = '';
+                },
+
+                startEditName() {
+                    this.editingName = true;
+                    this.editNameValue = this.user.user_name || '';
+                    this.$nextTick(() => {
+                        const input = document.querySelector('.edit-input');
+                        if (input) input.focus();
+                    });
+                },
+
+                async saveName() {
+                    if (!this.editNameValue.trim()) {
+                        this.editingName = false;
+                        return;
+                    }
+
+                    try {
+                        await this.api(`/v2/users/put/${this.user.id}`, 'PUT', {
+                            user_name: this.editNameValue.trim(),
+                            email: this.user.email,
+                            phone: this.user.phone || '',
+                            password: '',
+                            is_active: true,
+                            whats_up: this.user.whats_up || '',
+                            avatar_id: this.user.avatar_id || 0
+                        });
+
+                        this.user.user_name = this.editNameValue.trim();
+                        localStorage.setItem('user', JSON.stringify(this.user));
+                        // 更新缓存
+                        if (this.usersCache[this.user.id]) {
+                            this.usersCache[this.user.id].user_name = this.editNameValue.trim();
+                        }
+                        this.showToast('名称已更新', 'success');
+                    } catch (error) {
+                        this.showToast('更新失败', 'error');
+                    } finally {
+                        this.editingName = false;
+                    }
+                },
+
+                startEditBio() {
+                    this.editingBio = true;
+                    this.editBioValue = this.user.whats_up || '';
+                    this.$nextTick(() => {
+                        const inputs = document.querySelectorAll('.edit-input');
+                        if (inputs[1]) inputs[1].focus();
+                    });
+                },
+
+                async saveBio() {
+                    try {
+                        await this.api(`/v2/users/put/${this.user.id}`, 'PUT', {
+                            user_name: this.user.user_name,
+                            email: this.user.email,
+                            phone: this.user.phone || '',
+                            password: '',
+                            is_active: true,
+                            whats_up: this.editBioValue.trim(),
+                            avatar_id: this.user.avatar_id || 0
+                        });
+
+                        this.user.whats_up = this.editBioValue.trim();
+                        localStorage.setItem('user', JSON.stringify(this.user));
+                        this.showToast('签名已更新', 'success');
+                    } catch (error) {
+                        this.showToast('更新失败', 'error');
+                    } finally {
+                        this.editingBio = false;
+                    }
+                },
+
+                // ========== 工具函数 ==========
+                goBack() {
+                    if (this.pageHistory.length > 1) {
+                        this.pageHistory.pop();
+                        this.page = this.pageHistory[this.pageHistory.length - 1];
+                    } else {
+                        this.page = 'home';
+                    }
+                },
+
+                getAvatarUrl(avatarId) {
+                    if (!avatarId) {
+                        return this.getDefaultAvatar();
+                    }
+                    return `/api/v2/image/${avatarId}`;
+                },
+
+                formatTime(dateStr) {
+                    if (!dateStr) return '';
+
+                    try {
+                        const date = new Date(dateStr);
+                        const now = new Date();
+                        const diff = (now - date) / 1000;
+
+                        if (diff < 60) return '刚刚';
+                        if (diff < 3600) return Math.floor(diff / 60) + '分钟前';
+                        if (diff < 86400) return Math.floor(diff / 3600) + '小时前';
+                        if (diff < 604800) return Math.floor(diff / 86400) + '天前';
+
+                        return date.toLocaleDateString('zh-CN', {
+                            month: 'numeric',
+                            day: 'numeric'
+                        });
+                    } catch (e) {
+                        return dateStr;
+                    }
+                },
+
+                isTweetLong(content) {
+                    return content && content.length > 300;
+                },
+
+                getTweetDisplayContent(tweet) {
+                    if (!tweet.tweet) return '';
+
+                    if (this.expandedTweets[tweet.id]) {
+                        return tweet.tweet;
+                    }
+
+                    if (this.isTweetLong(tweet.tweet)) {
+                        return tweet.tweet.substring(0, 300);
+                    }
+
+                    return tweet.tweet;
+                },
+
+                toggleTweetExpand(tweetId) {
+                    this.expandedTweets[tweetId] = !this.expandedTweets[tweetId];
+                },
+
+                getImageGridClass(count) {
+                    if (count === 1) return 'single';
+                    if (count === 2) return 'double';
+                    if (count === 4) return 'grid-2';
+                    return 'grid-3';
+                },
+
+                getDisplayImages(imageIds) {
+                    if (!imageIds) return [];
+                    return imageIds.slice(0, 9);
+                },
+
+                previewImage(imgId) {
+                    this.previewImageId = imgId;
+                },
+
+                parseTags(tagsStr) {
+                    if (!tagsStr) return [];
+                    return tagsStr.split(',').filter(t => t.trim());
+                },
+
+                formatTags(tagsStr) {
+                    if (!tagsStr) return '';
+                    const tags = tagsStr.split(',').filter(t => t.trim());
+                    if (tags.length === 0) return '';
+                    if (tags.length === 1) return tags[0];
+                    return tags.slice(0, 2).join(', ') + (tags.length > 2 ? '...' : '');
+                },
+
+                truncateText(text, maxLength) {
+                    if (!text) return '';
+                    if (text.length <= maxLength) return text;
+                    return text.substring(0, maxLength) + '...';
+                },
+
+                showToast(message, type = 'info') {
+                    this.toast = { show: true, message, type };
+
+                    setTimeout(() => {
+                        this.toast.show = false;
+                    }, 3000);
+                }
+            };
+        }
+    </script>
+</body>
+</html>

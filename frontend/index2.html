@@ -1,0 +1,998 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>吉卜力微博</title>
+
+    <style>
+        /* ========== 基础配色与重置 ========== */
+        :root {
+            --ghibli-sky: #87CEEB;
+            --ghibli-sky-light: #B0E0E6;
+            --ghibli-grass: #90B77D;
+            --ghibli-grass-light: #B4D4A4;
+            --ghibli-cream: #FFF8E7;
+            --ghibli-coral: #FF7F7F;
+            --text-primary: #5D5D5D;
+            --text-secondary: #8B8B8B;
+            --text-light: #A9A9A9;
+            --shadow-card: 0 4px 12px rgba(144, 183, 125, 0.15);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'PingFang SC', sans-serif;
+            background: var(--ghibli-cream);
+            color: var(--text-primary);
+            max-width: 480px;
+            margin: 0 auto;
+            min-height: 100vh;
+            font-size: 14px;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        [x-cloak] { display: none !important; }
+
+        /* ========== 通用布局 ========== */
+        .page-container { min-height: 100vh; padding-bottom: 70px; }
+
+        .page-header {
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 15px 20px; background: rgba(255, 255, 255, 0.95);
+            border-bottom: 1px solid rgba(135, 206, 235, 0.3);
+            position: sticky; top: 0; z-index: 100;
+        }
+        .page-header h1 { font-size: 18px; color: var(--ghibli-grass); font-weight: 500; }
+        .header-btn { background: none; border: none; font-size: 20px; cursor: pointer; padding: 5px 10px; color: var(--text-secondary); }
+
+        .ghibli-card { background: white; border-radius: 16px; box-shadow: var(--shadow-card); border: 1px solid rgba(135, 206, 235, 0.2); }
+
+        /* ========== 头像 ========== */
+        .avatar { width: 48px; height: 48px; border-radius: 50%; border: 3px solid var(--ghibli-grass); object-fit: cover; background: var(--ghibli-sky-light); cursor: pointer; }
+        .avatar-sm { width: 36px; height: 36px; border-width: 2px; }
+        .avatar-lg { width: 100px; height: 100px; border-width: 4px; }
+
+        /* ========== 按钮 ========== */
+        .btn { padding: 12px 24px; border: none; border-radius: 12px; font-size: 16px; font-weight: 500; cursor: pointer; transition: all 0.3s; }
+        .btn-primary { background: linear-gradient(135deg, var(--ghibli-sky), var(--ghibli-grass)); color: white; box-shadow: 0 4px 15px rgba(135, 206, 235, 0.4); }
+        .btn-primary:disabled { opacity: 0.6; cursor: not-allowed; }
+        .btn-sm { padding: 8px 16px; font-size: 14px; border-radius: 20px; }
+        .btn-outline { background: white; color: var(--ghibli-coral); border: 1px solid var(--ghibli-coral); }
+
+        /* ========== 登录/注册页 ========== */
+        .auth-page { display: flex; align-items: center; justify-content: center; min-height: 100vh; padding: 20px; }
+        .auth-card { width: 100%; max-width: 380px; padding: 40px 30px; text-align: center; }
+        .auth-title { font-size: 28px; color: var(--ghibli-grass); margin-bottom: 30px; font-weight: 500; }
+        .form-group { margin-bottom: 20px; text-align: left; }
+        .form-group label { display: block; font-size: 14px; color: var(--text-secondary); margin-bottom: 8px; font-weight: 500; }
+        .form-group input { width: 100%; padding: 14px 16px; border: 2px solid var(--ghibli-sky-light); border-radius: 12px; font-size: 16px; transition: all 0.3s; }
+        .form-group input:focus { outline: none; border-color: var(--ghibli-grass); }
+        .auth-footer { margin-top: 25px; font-size: 14px; color: var(--text-secondary); }
+        .auth-footer a { color: var(--ghibli-grass); text-decoration: none; font-weight: 500; }
+
+        /* ========== 推文列表 ========== */
+        .tweet-list-container { padding: 10px 0; }
+        .tweet-card { margin: 12px 15px; padding: 15px; cursor: pointer; }
+        .tweet-header { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; }
+        .tweet-user-info { flex: 1; min-width: 0; }
+        .tweet-user-name { font-weight: 600; font-size: 15px; color: var(--text-primary); }
+        .tweet-time { display: block; font-size: 12px; color: var(--text-light); margin-top: 2px; }
+        .tweet-content { margin-bottom: 12px; line-height: 1.6; font-size: 15px; color: var(--text-primary); word-break: break-word; }
+        .tweet-more-btn { background: none; border: none; color: var(--ghibli-grass); font-size: 14px; cursor: pointer; padding: 5px 0; font-weight: 500; }
+
+        /* 九宫格图片 */
+        .tweet-images { margin: 12px 0; display: grid; gap: 4px; border-radius: 12px; overflow: hidden; }
+        .tweet-images.single { max-width: 200px; }
+        .tweet-images.double { grid-template-columns: 1fr 1fr; }
+        .tweet-images.grid-3 { grid-template-columns: repeat(3, 1fr); }
+        .tweet-images.grid-2 { grid-template-columns: repeat(2, 1fr); }
+        .tweet-img { width: 100%; aspect-ratio: 1; object-fit: cover; cursor: pointer; background: #f5f5f5; }
+        .tweet-images.single .tweet-img { width: 100%; height: auto; max-height: 300px; object-fit: contain; aspect-ratio: auto; }
+
+        .tweet-actions { display: flex; align-items: center; gap: 20px; padding-top: 12px; border-top: 1px solid rgba(135, 206, 235, 0.3); }
+        .tweet-action-btn { background: none; border: none; font-size: 14px; color: var(--text-secondary); cursor: pointer; display: flex; align-items: center; gap: 5px; padding: 5px 0; }
+        .tweet-tags-display { margin-left: auto; font-size: 12px; color: var(--ghibli-grass); display: flex; align-items: center; gap: 4px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+        /* 发布按钮 */
+        .compose-fab { position: fixed; bottom: 80px; right: 20px; width: 56px; height: 56px; border-radius: 50%; border: none; background: linear-gradient(135deg, #FFB6C1, var(--ghibli-sky)); font-size: 24px; cursor: pointer; box-shadow: 0 4px 15px rgba(255, 182, 193, 0.5); z-index: 100; display: flex; align-items: center; justify-content: center; }
+
+        /* ========== 聊天列表 ========== */
+        .chat-item { display: flex; align-items: center; gap: 12px; padding: 15px; border-bottom: 1px solid rgba(135, 206, 235, 0.2); cursor: pointer; background: white; }
+        .chat-item:hover { background: var(--ghibli-cream); }
+        .chat-item-info { flex: 1; min-width: 0; }
+        .chat-item-name { font-weight: 600; font-size: 15px; color: var(--text-primary); display: flex; justify-content: space-between; align-items: center; }
+        .chat-item-preview { font-size: 13px; color: var(--text-secondary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-top: 4px; }
+        .chat-item-unread { background: var(--ghibli-coral); color: white; font-size: 11px; padding: 2px 8px; border-radius: 10px; min-width: 20px; text-align: center; }
+
+        /* ========== 聊天详情页 ========== */
+        .chat-detail-container { display: flex; flex-direction: column; height: 100vh; padding-bottom: 0; }
+        .chat-messages { flex: 1; overflow-y: auto; padding: 15px; background: var(--ghibli-cream); }
+
+        .message-item { display: flex; gap: 10px; margin-bottom: 15px; }
+        .message-item.self { flex-direction: row-reverse; }
+        .message-content-wrapper { max-width: 70%; }
+        .message-sender { font-size: 12px; color: var(--text-light); margin-bottom: 4px; }
+        .message-item.self .message-sender { text-align: right; }
+
+        .message-bubble { background: white; padding: 10px 14px; border-radius: 16px; border-top-left-radius: 4px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); word-break: break-word; display: inline-block; }
+        .message-item.self .message-bubble { background: var(--ghibli-sky-light); border-radius: 16px; border-top-right-radius: 4px; }
+        .message-bubble img { max-width: 150px; max-height: 150px; border-radius: 8px; cursor: pointer; display: block; }
+
+        .message-time { font-size: 11px; color: var(--text-light); margin-top: 4px; }
+        .message-item:not(.self) .message-time { text-align: left; }
+        .message-item.self .message-time { text-align: right; }
+
+        /* 聊天输入栏 */
+        .chat-input-bar { position: fixed; bottom: 0; left: 50%; transform: translateX(-50%); width: 100%; max-width: 480px; padding: 10px 15px; background: white; border-top: 1px solid rgba(135, 206, 235, 0.3); display: flex; gap: 10px; align-items: flex-end; z-index: 100; }
+        .chat-textarea { flex: 1; min-height: 40px; max-height: 100px; padding: 10px 14px; border: 2px solid var(--ghibli-sky-light); border-radius: 20px; font-size: 14px; resize: none; }
+        .chat-textarea:focus { outline: none; border-color: var(--ghibli-grass); }
+        .chat-send-btn { padding: 10px 20px; background: var(--ghibli-grass); color: white; border: none; border-radius: 20px; font-size: 14px; font-weight: 500; cursor: pointer; white-space: nowrap; }
+        .chat-send-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+        /* ========== 发布页 ========== */
+        .compose-container { padding: 15px; }
+        .compose-textarea { width: 100%; min-height: 200px; border: none; resize: none; font-size: 16px; line-height: 1.6; padding: 15px; font-family: inherit; background: transparent; }
+        .compose-textarea:focus { outline: none; }
+
+        /* 图片预览区 */
+        .compose-images { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; padding: 0 15px 15px; margin-top: 15px; }
+        .compose-img-item { position: relative; aspect-ratio: 1; border-radius: 8px; overflow: hidden; }
+        .compose-img-item img { width: 100%; height: 100%; object-fit: cover; }
+        .compose-img-delete { position: absolute; top: 4px; right: 4px; width: 24px; height: 24px; border-radius: 50%; background: rgba(0,0,0,0.6); color: white; border: none; font-size: 14px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+        .compose-img-add { aspect-ratio: 1; border: 2px dashed var(--ghibli-sky); border-radius: 8px; display: flex; flex-direction: column; align-items: center; justify-content: center; cursor: pointer; color: var(--ghibli-sky); font-size: 24px; background: rgba(135, 206, 235, 0.1); transition: all 0.3s; }
+        .compose-img-add:hover { border-color: var(--ghibli-grass); color: var(--ghibli-grass); }
+
+        /* 底部工具栏 */
+        .compose-toolbar { display: flex; justify-content: space-between; align-items: center; padding: 12px 15px; border-top: 1px solid rgba(135, 206, 235, 0.3); background: var(--ghibli-cream); gap: 10px; }
+        .compose-tools-left { display: flex; align-items: center; gap: 10px; flex: 1; }
+        .tag-input-row { display: flex; align-items: center; gap: 5px; flex: 1; padding: 5px 10px; background: white; border-radius: 20px; border: 1px solid var(--ghibli-sky-light); }
+        .tag-input-inline { border: none; background: transparent; font-size: 13px; outline: none; flex: 1; min-width: 60px; }
+        .tag-preview { font-size: 12px; color: var(--ghibli-grass); background: var(--ghibli-sky-light); padding: 2px 8px; border-radius: 10px; white-space: nowrap; }
+
+        /* ========== 弹窗 ========== */
+        .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0, 0, 0, 0.5); display: flex; align-items: center; justify-content: center; z-index: 1000; padding: 20px; }
+        .modal-content { background: white; border-radius: 16px; width: 100%; max-width: 360px; max-height: 80vh; overflow: hidden; display: flex; flex-direction: column; }
+        .modal-header { padding: 20px; border-bottom: 1px solid rgba(135, 206, 235, 0.3); display: flex; justify-content: space-between; align-items: center; }
+        .modal-title { font-size: 18px; color: var(--text-primary); font-weight: 500; }
+        .modal-close { background: none; border: none; font-size: 24px; cursor: pointer; color: var(--text-light); }
+        .modal-body { padding: 20px; overflow-y: auto; flex: 1; }
+        .modal-footer { padding: 15px 20px; border-top: 1px solid rgba(135, 206, 235, 0.3); display: flex; gap: 10px; justify-content: flex-end; }
+        .user-search-input { width: 100%; padding: 12px 16px; border: 2px solid var(--ghibli-sky-light); border-radius: 12px; font-size: 14px; margin-bottom: 15px; }
+        .user-search-item { display: flex; align-items: center; gap: 12px; padding: 10px; border-radius: 8px; cursor: pointer; transition: background 0.2s; }
+        .user-search-item:hover { background: var(--ghibli-cream); }
+        .user-search-item.selected { background: var(--ghibli-sky-light); }
+        .selected-users { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 15px; }
+        .selected-user-tag { background: var(--ghibli-sky-light); padding: 4px 12px; border-radius: 16px; font-size: 13px; display: flex; align-items: center; gap: 5px; }
+        .selected-user-tag button { background: none; border: none; cursor: pointer; font-size: 14px; color: var(--text-secondary); }
+
+        /* ========== 底部导航栏 ========== */
+        .bottom-nav { position: fixed; bottom: 0; left: 50%; transform: translateX(-50%); width: 100%; max-width: 480px; height: 60px; background: rgba(255, 255, 255, 0.98); backdrop-filter: blur(10px); border-top: 1px solid rgba(135, 206, 235, 0.3); display: flex; justify-content: space-around; align-items: center; z-index: 100; }
+        .nav-item { display: flex; flex-direction: column; align-items: center; gap: 4px; background: none; border: none; cursor: pointer; padding: 8px 20px; color: var(--text-light); transition: color 0.3s; position: relative; }
+        .nav-item.active { color: var(--ghibli-grass); }
+        .nav-icon { font-size: 22px; }
+        .nav-label { font-size: 11px; font-weight: 500; }
+        .nav-badge { position: absolute; top: 5px; right: 15px; background: var(--ghibli-coral); color: white; font-size: 10px; padding: 2px 6px; border-radius: 10px; min-width: 16px; text-align: center; }
+
+        /* ========== Toast & Loading & Preview ========== */
+        .toast { position: fixed; top: 80px; left: 50%; transform: translateX(-50%); padding: 12px 24px; border-radius: 24px; font-size: 14px; z-index: 1001; animation: fadeInDown 0.3s ease; max-width: 300px; text-align: center; }
+        .toast-success { background: var(--ghibli-grass); color: white; }
+        .toast-error { background: var(--ghibli-coral); color: white; }
+        .toast-info { background: var(--ghibli-sky); color: white; }
+        @keyframes fadeInDown { from { opacity: 0; transform: translate(-50%, -20px); } to { opacity: 1; transform: translate(-50%, 0); } }
+        .loading-spinner { width: 24px; height: 24px; border: 3px solid var(--ghibli-sky-light); border-top-color: var(--ghibli-grass); border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .empty-state { text-align: center; padding: 60px 20px; color: var(--text-secondary); }
+        .image-preview-modal { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.9); z-index: 2000; display: flex; align-items: center; justify-content: center; }
+        .image-preview-modal img { max-width: 100%; max-height: 100%; object-fit: contain; }
+    </style>
+</head>
+<body>
+    <div id="app" x-data="App()" x-init="init()" x-cloak>
+
+        <!-- ========== 1. 登录页 ========== -->
+        <div x-show="page === 'login'" x-transition class="auth-page">
+            <div class="ghibli-card auth-card">
+                <h1 class="auth-title">欢迎回来</h1>
+                <form @submit.prevent="handleLogin()">
+                    <div class="form-group"><label>用户名</label><input type="text" x-model="loginForm.user_name" placeholder="请输入用户名" required></div>
+                    <div class="form-group"><label>密码</label><input type="password" x-model="loginForm.password" placeholder="请输入密码" required></div>
+                    <button type="submit" class="btn btn-primary" style="width: 100%" :disabled="loading"><span x-text="loading ? '登录中...' : '登录'"></span></button>
+                </form>
+                <div class="auth-footer">还没有账号？<a href="#" @click.prevent="page = 'register'">立即注册</a></div>
+            </div>
+        </div>
+
+        <!-- ========== 2. 注册页 ========== -->
+        <div x-show="page === 'register'" x-transition class="auth-page">
+            <div class="ghibli-card auth-card">
+                <h1 class="auth-title">创建账号</h1>
+                <form @submit.prevent="handleRegister()">
+                    <div class="form-group"><label>用户名</label><input type="text" x-model="registerForm.user_name" placeholder="请输入用户名" required></div>
+                    <div class="form-group"><label>邮箱</label><input type="email" x-model="registerForm.email" placeholder="请输入邮箱" required></div>
+                    <div class="form-group"><label>密码</label><input type="password" x-model="registerForm.password" placeholder="请输入密码" required></div>
+                    <button type="submit" class="btn btn-primary" style="width: 100%" :disabled="loading"><span x-text="loading ? '注册中...' : '注册'"></span></button>
+                </form>
+                <div class="auth-footer">已有账号？<a href="#" @click.prevent="page = 'login'">立即登录</a></div>
+            </div>
+        </div>
+
+        <!-- ========== 3. 主页（推文列表） ========== -->
+        <div x-show="page === 'home'" x-transition class="page-container">
+            <header class="page-header">
+                <template x-if="showSearch">
+                    <div style="display: flex; align-items: center; width: 100%; gap: 10px;">
+                        <button class="header-btn" @click="showSearch = false; searchKeyword = ''">←</button>
+                        <input type="text" style="flex: 1; padding: 8px 12px; border: 1px solid var(--ghibli-sky-light); border-radius: 20px; font-size: 14px;" x-model="searchKeyword" placeholder="搜索推文..." @keyup.enter="searchTweets()" autofocus>
+                        <button class="header-btn" @click="searchTweets()">🔍</button>
+                    </div>
+                </template>
+                <template x-if="!showSearch">
+                    <div style="display: flex; align-items: center; width: 100%; justify-content: space-between;">
+                        <h1>🏡 推文</h1>
+                        <button class="header-btn" @click="showSearch = true">🔍</button>
+                    </div>
+                </template>
+            </header>
+
+            <div class="tweet-list-container">
+                <template x-for="tweet in tweets" :key="tweet.id">
+                    <div class="ghibli-card tweet-card" @click="viewTweetDetail(tweet.id)">
+                        <div class="tweet-header">
+                            <!-- 点击头像创建私聊 -->
+                            <img class="avatar" :src="getUserAvatar(tweet.creater_id)" @click.stop="handleAvatarClick(tweet.creater_id, tweet.user_name)" @error="$event.target.src=getDefaultAvatar()">
+                            <div class="tweet-user-info">
+                                <span class="tweet-user-name" x-text="getUserDisplayName(tweet)"></span>
+                                <span class="tweet-time" x-text="formatTime(tweet.created_at)"></span>
+                            </div>
+                        </div>
+
+                        <div class="tweet-content">
+                            <p x-text="getTweetDisplayContent(tweet)"></p>
+                            <button x-show="isTweetLong(tweet.tweet)" class="tweet-more-btn" @click.stop="toggleTweetExpand(tweet.id)"><span x-text="expandedTweets[tweet.id] ? '收起' : '...More'"></span></button>
+                        </div>
+
+                        <!-- 图片展示 -->
+                        <div x-show="tweet.image_ids && tweet.image_ids.length > 0" :class="getImageGridClass(tweet.image_ids.length)" class="tweet-images">
+                            <template x-for="imgId in tweet.image_ids.slice(0, 9)" :key="imgId">
+                                <img class="tweet-img" :src="'/api/v2/image/' + imgId" @click.stop="previewImageId = imgId">
+                            </template>
+                        </div>
+
+                        <div class="tweet-actions">
+                            <button class="tweet-action-btn" @click.stop="viewTweetDetail(tweet.id)">💬 <span x-text="tweet.comment_count || ''"></span></button>
+                            <button class="tweet-action-btn" disabled>🔄</button>
+                            <button class="tweet-action-btn" disabled>❤️</button>
+                            <!-- 标签显示在最右侧 -->
+                            <div x-show="tweet.tags && tweet.tags.length > 0" class="tweet-tags-display">
+                                <span>🏷️</span>
+                                <span x-text="formatTags(tweet.tags)"></span>
+                            </div>
+                        </div>
+                    </div>
+                </template>
+
+                <div x-show="tweetsLoading" style="text-align: center; padding: 20px;"><div class="loading-spinner"></div></div>
+                <div x-show="!tweetsLoading && tweets.length === 0" class="empty-state"><p>还没有推文</p></div>
+            </div>
+
+            <button class="compose-fab" @click="openCompose()">✏️</button>
+        </div>
+
+        <!-- ========== 4. 推文详情页 ========== -->
+        <div x-show="page === 'detail'" x-transition class="page-container">
+            <header class="page-header">
+                <button class="header-btn" @click="goBack()">←</button>
+                <h1>推文详情</h1>
+                <div style="width: 30px;"></div>
+            </header>
+
+            <div class="ghibli-card" style="margin: 15px; padding: 20px;">
+                <div class="tweet-header">
+                    <img class="avatar" :src="getUserAvatar(currentTweet.creater_id)" @click.stop="handleAvatarClick(currentTweet.creater_id, currentTweet.user_name)">
+                    <div class="tweet-user-info">
+                        <span class="tweet-user-name" x-text="getUserDisplayName(currentTweet)"></span>
+                        <span class="tweet-time" x-text="formatTime(currentTweet.created_at)"></span>
+                    </div>
+                </div>
+                <div style="margin: 15px 0; line-height: 1.8;" x-text="currentTweet.tweet"></div>
+                <div x-show="currentTweet.image_ids && currentTweet.image_ids.length > 0" :class="getImageGridClass(currentTweet.image_ids.length)" class="tweet-images">
+                    <template x-for="imgId in currentTweet.image_ids" :key="imgId">
+                        <img class="tweet-img" :src="'/api/v2/image/' + imgId" @click="previewImageId = imgId">
+                    </template>
+                </div>
+            </div>
+
+            <!-- 评论列表 -->
+            <div style="padding: 15px;">
+                <h3 style="color: var(--ghibli-grass); margin-bottom: 15px;">💬 评论</h3>
+                <template x-for="comment in comments" :key="comment.id">
+                    <div style="display: flex; gap: 12px; padding: 15px 0; border-bottom: 1px solid rgba(135, 206, 235, 0.2);">
+                        <img class="avatar avatar-sm" :src="getUserAvatar(comment.creater_id)" @click.stop="handleAvatarClick(comment.creater_id, comment.creater_name)">
+                        <div style="flex: 1;">
+                            <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
+                                <span style="font-weight: 600;" x-text="comment.creater_name"></span>
+                                <span style="font-size: 12px; color: var(--text-light);" x-text="formatTime(comment.created_at)"></span>
+                            </div>
+                            <p x-text="comment.content"></p>
+                        </div>
+                    </div>
+                </template>
+                <div x-show="comments.length === 0" class="empty-state" style="padding: 20px;">还没有评论</div>
+            </div>
+
+            <div class="chat-input-bar">
+                <input type="text" x-model="newComment" placeholder="写下你的评论..." style="flex: 1; padding: 10px; border: 1px solid var(--ghibli-sky-light); border-radius: 20px;" @keyup.enter="submitComment()">
+                <button class="chat-send-btn" :disabled="!newComment.trim()" @click="submitComment()">发送</button>
+            </div>
+        </div>
+
+        <!-- ========== 5. 发布推文页 ========== -->
+        <div x-show="page === 'compose'" x-transition class="page-container">
+            <header class="page-header">
+                <button class="header-btn" @click="goBack()">←</button>
+                <h1>发布推文</h1>
+                <div style="width: 30px;"></div>
+            </header>
+
+            <div class="ghibli-card compose-container">
+                <textarea class="compose-textarea" x-model="composeContent" placeholder="写下你的想法..."></textarea>
+            </div>
+
+            <!-- 图片预览 -->
+            <div x-show="composeImages.length > 0 || composeImages.length < 9" class="compose-images">
+                <template x-for="(img, index) in composeImages" :key="index">
+                    <div class="compose-img-item">
+                        <img :src="img.preview">
+                        <button class="compose-img-delete" @click="removeImage(index)">✕</button>
+                    </div>
+                </template>
+                <!-- 添加图片按钮：紧凑加号 -->
+                <div x-show="composeImages.length < 9" class="compose-img-add" @click="document.getElementById('compose-img-input').click()">+</div>
+            </div>
+
+            <div class="compose-toolbar">
+                <div class="compose-tools-left">
+                    <!-- 标签输入在右侧展开 -->
+                    <button class="header-btn" @click="showTagInput = !showTagInput">🏷️</button>
+                    <div x-show="showTagInput" x-transition class="tag-input-row">
+                        <template x-for="(tag, index) in composeTags" :key="index">
+                            <span class="tag-preview">#<span x-text="tag"></span><button @click="composeTags.splice(index, 1)" style="margin-left:2px; font-size:10px;">✕</button></span>
+                        </template>
+                        <input type="text" class="tag-input-inline" placeholder="标签" x-model="tagInputValue" @keyup.enter="addTag()">
+                    </div>
+                </div>
+                <button class="btn btn-primary btn-sm" :disabled="(!composeContent.trim() && composeImages.length === 0) || composeSubmitting" @click="publishTweet()">
+                    <span x-text="composeSubmitting ? '发布中...' : '发布'"></span>
+                </button>
+            </div>
+            <input type="file" id="compose-img-input" accept="image/*" multiple style="display: none" @change="handleImageSelect($event)">
+        </div>
+
+        <!-- ========== 6. 聊天列表 ========== -->
+        <div x-show="page === 'chat'" x-transition class="page-container">
+            <header class="page-header">
+                <h1>💬 聊天</h1>
+                <button class="header-btn" @click="showCreateGroupModal = true">+</button>
+            </header>
+
+            <div>
+                <template x-for="conv in conversations" :key="conv.id">
+                    <div class="chat-item" @click="openChat(conv)">
+                        <img class="avatar avatar-sm" :src="getConversationAvatar(conv)">
+                        <div class="chat-item-info">
+                            <div class="chat-item-name">
+                                <span x-text="conv.group_name || '私聊'"></span>
+                                <span style="font-size: 12px; color: var(--text-light); font-weight: normal;" x-text="formatTime(conv.last_message_time)"></span>
+                            </div>
+                            <div class="chat-item-preview" x-text="conv.last_message || '暂无消息'"></div>
+                        </div>
+                        <div x-show="conv.unread_count > 0" class="chat-item-unread" x-text="conv.unread_count"></div>
+                    </div>
+                </template>
+
+                <div x-show="conversations.length === 0" class="empty-state"><p>还没有聊天</p><p style="font-size: 12px; margin-top: 5px;">点击推文头像开始私聊</p></div>
+            </div>
+        </div>
+
+        <!-- ========== 7. 聊天详情页 ========== -->
+        <div x-show="page === 'chat-detail'" x-transition class="chat-detail-container">
+            <header class="page-header">
+                <button class="header-btn" @click="goBack()">←</button>
+                <h1 x-text="currentConversation ? (currentConversation.group_name || '私聊') : '聊天'"></h1>
+                <button x-show="currentConversation && currentConversation.type === 'group'" class="header-btn" @click="showAddMemberModal = true">+</button>
+            </header>
+
+            <div class="chat-messages" id="chat-messages-box">
+                <template x-for="msg in chatMessages" :key="msg.id">
+                    <div class="message-item" :class="{ 'self': msg.sender_id === user.id }">
+                        <img class="avatar avatar-sm" :src="getUserAvatar(msg.sender_id)" @click="handleAvatarClick(msg.sender_id, msg.sender_name)">
+                        <div class="message-content-wrapper">
+                            <div class="message-sender" x-text="msg.sender_name"></div>
+                            <div class="message-bubble">
+                                <template x-if="msg.type === 'image'"><img :src="'/api/v2/image/' + msg.content" @click="previewImageId = msg.content"></template>
+                                <template x-if="!msg.type || msg.type === 'text'"><span x-text="msg.content"></span></template>
+                            </div>
+                            <div class="message-time" x-text="formatTime(msg.created_at)"></div>
+                        </div>
+                    </div>
+                </template>
+
+                <div x-show="chatMessagesLoading" style="text-align: center; padding: 20px;"><div class="loading-spinner"></div></div>
+            </div>
+
+            <div class="chat-input-bar">
+                <textarea class="chat-textarea" x-model="chatInputText" placeholder="输入消息..." @keydown.enter.prevent="sendChatMessage()" rows="1"></textarea>
+                <button class="header-btn" @click="document.getElementById('chat-img-input').click()">🖼️</button>
+                <button class="chat-send-btn" :disabled="(!chatInputText.trim() && chatInputImages.length === 0) || !wsReady" @click="sendChatMessage()">发送</button>
+                <input type="file" id="chat-img-input" accept="image/*" style="display: none" @change="handleChatImageSelect($event)">
+            </div>
+        </div>
+
+        <!-- ========== 8. 个人主页 ========== -->
+        <div x-show="page === 'profile'" x-transition class="page-container">
+            <header class="page-header">
+                <h1>我的</h1>
+                <!-- 登出按钮优化 -->
+                <button class="btn btn-outline btn-sm" @click="handleLogout()">退出</button>
+            </header>
+
+            <div class="ghibli-card" style="margin: 20px 15px; padding: 30px 20px; text-align: center;">
+                <div style="position: relative; display: inline-block; cursor: pointer;" @click="document.getElementById('avatar-upload-input').click()">
+                    <img class="avatar avatar-lg" :src="getAvatarUrl(user.avatar_id)">
+                    <div style="position: absolute; bottom: 5px; right: -5px; width: 32px; height: 32px; border-radius: 50%; background: var(--ghibli-sky); display: flex; align-items: center; justify-content: center;">📷</div>
+                </div>
+
+                <div x-show="!editingName" style="font-size: 22px; margin: 15px 0 5px; cursor: pointer;" @click="editingName = true; editNameValue = user.user_name || '';"><span x-text="user.user_name || '点击编辑'"></span></div>
+                <div x-show="editingName" style="margin: 15px 0 5px;"><input type="text" style="text-align: center; padding: 8px 12px; border: 2px solid var(--ghibli-sky-light); border-radius: 8px; max-width: 200px;" x-model="editNameValue" @blur="saveName()" @keyup.enter="saveName()"></div>
+
+                <div x-show="!editingBio" style="font-size: 14px; color: var(--text-secondary); cursor: pointer;" @click="editingBio = true; editBioValue = user.whats_up || '';"><span x-text="user.whats_up || '点击添加签名'"></span></div>
+                <div x-show="editingBio" style="margin-bottom: 20px;"><input type="text" style="text-align: center; padding: 8px 12px; border: 2px solid var(--ghibli-sky-light); border-radius: 8px; max-width: 250px;" x-model="editBioValue" @blur="saveBio()" @keyup.enter="saveBio()"></div>
+
+                <div style="display: flex; justify-content: center; gap: 50px; padding: 20px 0; margin-top: 20px; border-top: 1px solid rgba(135, 206, 235, 0.3); border-bottom: 1px solid rgba(135, 206, 235, 0.3);">
+                    <div style="text-align: center;"><span style="font-size: 24px; font-weight: 600; color: var(--ghibli-grass);" x-text="myTweets.length"></span><span style="display: block; font-size: 12px; color: var(--text-light);">推文</span></div>
+                    <div style="text-align: center;"><span style="font-size: 24px; font-weight: 600; color: var(--ghibli-grass);">0</span><span style="display: block; font-size: 12px; color: var(--text-light);">关注</span></div>
+                    <div style="text-align: center;"><span style="font-size: 24px; font-weight: 600; color: var(--ghibli-grass);">0</span><span style="display: block; font-size: 12px; color: var(--text-light);">粉丝</span></div>
+                </div>
+            </div>
+
+            <div style="padding: 15px;">
+                <h3 style="color: var(--ghibli-grass); margin-bottom: 15px;">📝 我的推文</h3>
+                <template x-for="tweet in myTweets" :key="tweet.id">
+                    <div class="ghibli-card" style="padding: 15px; margin-bottom: 10px; cursor: pointer;" @click="viewTweetDetail(tweet.id)">
+                        <p style="font-size: 14px; margin-bottom: 8px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" x-text="tweet.tweet"></p>
+                        <span style="font-size: 12px; color: var(--text-light);" x-text="formatTime(tweet.created_at)"></span>
+                    </div>
+                </template>
+            </div>
+            <input type="file" id="avatar-upload-input" accept="image/*" style="display: none" @change="handleAvatarUpload($event)">
+        </div>
+
+        <!-- ========== 底部导航栏 ========== -->
+        <div x-show="['home', 'chat', 'profile'].includes(page)" class="bottom-nav">
+            <button class="nav-item" :class="{ active: page === 'home' }" @click="navTo('home')"><span class="nav-icon">🏠</span><span class="nav-label">推文</span></button>
+            <button class="nav-item" :class="{ active: page === 'chat' }" @click="navTo('chat')" style="position: relative;"><span class="nav-icon">💬</span><span class="nav-label">聊天</span><span x-show="totalUnread > 0" class="nav-badge" x-text="totalUnread"></span></button>
+            <button class="nav-item" :class="{ active: page === 'profile' }" @click="navTo('profile')"><span class="nav-icon">👤</span><span class="nav-label">我的</span></button>
+        </div>
+
+        <!-- ========== 弹窗：创建群聊 ========== -->
+        <div x-show="showCreateGroupModal" class="modal-overlay" @click.self="showCreateGroupModal = false">
+            <div class="modal-content">
+                <div class="modal-header"><span class="modal-title">创建群聊</span><button class="modal-close" @click="showCreateGroupModal = false">✕</button></div>
+                <div class="modal-body">
+                    <input type="text" class="user-search-input" placeholder="搜索用户..." x-model="groupSearchKeyword" @input="searchUsers('group')">
+                    <div x-show="selectedGroupUsers.length > 0" class="selected-users">
+                        <template x-for="u in selectedGroupUsers" :key="u.id"><span class="selected-user-tag"><span x-text="u.user_name"></span><button @click="selectedGroupUsers = selectedGroupUsers.filter(x => x.id !== u.id)">✕</button></span></template>
+                    </div>
+                    <div style="max-height: 200px; overflow-y: auto;">
+                        <template x-for="u in groupSearchResults" :key="u.id">
+                            <div class="user-search-item" :class="{ selected: selectedGroupUsers.some(x => x.id === u.id) }" @click="toggleSelectGroupUser(u)">
+                                <img class="avatar avatar-sm" :src="getUserAvatar(u.id)"><span x-text="u.user_name"></span>
+                            </div>
+                        </template>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-sm" style="background: #f0f0f0; color: var(--text-primary);" @click="showCreateGroupModal = false">取消</button>
+                    <button class="btn btn-primary btn-sm" :disabled="selectedGroupUsers.length < 1" @click="createGroup()">创建</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- ========== 弹窗：添加成员 ========== -->
+        <div x-show="showAddMemberModal" class="modal-overlay" @click.self="showAddMemberModal = false">
+            <div class="modal-content">
+                <div class="modal-header"><span class="modal-title">添加群成员</span><button class="modal-close" @click="showAddMemberModal = false">✕</button></div>
+                <div class="modal-body">
+                    <input type="text" class="user-search-input" placeholder="搜索用户..." x-model="memberSearchKeyword" @input="searchUsers('member')">
+                    <div style="max-height: 200px; overflow-y: auto;">
+                        <template x-for="u in memberSearchResults" :key="u.id">
+                            <div class="user-search-item" :class="{ selected: selectedMembers.some(x => x.id === u.id) }" @click="toggleSelectMember(u)">
+                                <img class="avatar avatar-sm" :src="getUserAvatar(u.id)"><span x-text="u.user_name"></span>
+                            </div>
+                        </template>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-sm" style="background: #f0f0f0; color: var(--text-primary);" @click="showAddMemberModal = false">取消</button>
+                    <button class="btn btn-primary btn-sm" :disabled="selectedMembers.length === 0" @click="addMembers()">添加</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- ========== Toast & Preview ========== -->
+        <div x-show="toast.show" x-transition class="toast" :class="'toast-' + toast.type" x-text="toast.message"></div>
+        <div x-show="previewImageId" class="image-preview-modal" @click="previewImageId = null"><img :src="'/api/v2/image/' + previewImageId"></div>
+    </div>
+
+    <!-- Alpine.js -->
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+
+    <script>
+        function App() {
+            return {
+                // ==================== 状态 ====================
+                page: 'login',
+                loading: false,
+                token: localStorage.getItem('token') || null,
+                user: JSON.parse(localStorage.getItem('user') || '{}'),
+                pageHistory: ['login'],
+                usersCache: {}, // 用户信息缓存 { id: { user_name, avatar_id } }
+
+                // 表单
+                loginForm: { user_name: '', password: '' },
+                registerForm: { user_name: '', email: '', password: '' },
+
+                // 推文
+                showSearch: false,
+                searchKeyword: '',
+                tweets: [],
+                tweetsLoading: false,
+                tweetsPage: 0,
+                hasMoreTweets: true,
+                expandedTweets: {},
+
+                // 推文详情
+                currentTweet: {},
+                comments: [],
+                newComment: '',
+
+                // 发布
+                composeContent: '',
+                composeImages: [],
+                composeImageIds: [],
+                composeSubmitting: false,
+                showTagInput: false,
+                composeTags: [],
+                tagInputValue: '',
+
+                // 聊天
+                conversations: [],
+                currentConversation: null,
+                chatMessages: [],
+                chatMessagesLoading: false,
+                chatInputText: '',
+                chatInputImages: [],
+                totalUnread: 0,
+
+                // WebSocket
+                ws: null,
+                wsReady: false,
+                wsReconnectTimer: null,
+                heartbeatTimer: null,
+
+                // 群聊
+                showCreateGroupModal: false,
+                groupSearchKeyword: '',
+                groupSearchResults: [],
+                selectedGroupUsers: [],
+
+                // 添加成员
+                showAddMemberModal: false,
+                memberSearchKeyword: '',
+                memberSearchResults: [],
+                selectedMembers: [],
+
+                // 个人主页
+                myTweets: [],
+                editingName: false,
+                editingBio: false,
+                editNameValue: '',
+                editBioValue: '',
+
+                // 通用
+                previewImageId: null,
+                toast: { show: false, message: '', type: 'info' },
+
+                // ==================== 核心 ====================
+                init() {
+                    if (this.token && this.user.id) {
+                        this.page = 'home';
+                        this.loadTweets();
+                        this.loadUserInfo();
+                        this.connectWs(); // 登录后保持连接
+                    }
+                    this.setupScrollListener();
+                },
+
+                async api(endpoint, method = 'GET', data = null, isFormData = false) {
+                    const url = '/api' + endpoint;
+                    const opts = { method, headers: {} };
+                    if (!isFormData) opts.headers['Content-Type'] = 'application/json';
+                    if (this.token) opts.headers['Authorization'] = 'Bearer ' + this.token;
+                    if (data) opts.body = isFormData ? data : JSON.stringify(data);
+
+                    const res = await fetch(url, opts);
+                    if (!res.ok) {
+                        const err = await res.json().catch(() => ({ detail: '请求失败' }));
+                        throw new Error(err.detail || `HTTP ${res.status}`);
+                    }
+                    const text = await res.text();
+                    return text ? JSON.parse(text) : null;
+                },
+
+                // ==================== 认证 ====================
+                async handleLogin() {
+                    if (this.loading || !this.loginForm.user_name || !this.loginForm.password) return;
+                    this.loading = true;
+                    try {
+                        const res = await this.api('/v1/users/login', 'POST', this.loginForm);
+                        this.token = res.access_token;
+                        this.user = { id: res.user_id, user_name: res.user_name };
+                        localStorage.setItem('token', this.token);
+                        localStorage.setItem('user', JSON.stringify(this.user));
+
+                        this.showToast('登录成功！', 'success');
+                        this.page = 'home';
+                        this.pageHistory = ['home'];
+
+                        // 登录后刷新数据
+                        this.loadTweets();
+                        this.loadUserInfo();
+                        this.connectWs();
+                        this.loginForm = { user_name: '', password: '' };
+                    } catch (error) {
+                        this.showToast('登录失败：' + error.message, 'error');
+                    } finally {
+                        this.loading = false;
+                    }
+                },
+
+                async handleRegister() {
+                    if (this.loading) return;
+                    this.loading = true;
+                    try {
+                        await this.api('/v1/users/create', 'POST', this.registerForm);
+                        this.showToast('注册成功，请登录！', 'success');
+                        this.page = 'login';
+                        this.registerForm = { user_name: '', email: '', password: '' };
+                    } catch (error) {
+                        this.showToast('注册失败：' + error.message, 'error');
+                    } finally {
+                        this.loading = false;
+                    }
+                },
+
+                async handleLogout() {
+                    if (!confirm('确定要退出登录吗？')) return;
+                    try { await this.api('/v2/users/logout'); } catch (e) {}
+                    this.disconnectWs();
+                    this.token = null; this.user = {}; this.tweets = []; this.conversations = []; this.usersCache = {};
+                    this.page = 'login'; this.pageHistory = ['login'];
+                    localStorage.removeItem('token'); localStorage.removeItem('user');
+                    this.showToast('已退出登录', 'info');
+                },
+
+                async loadUserInfo() {
+                    if (!this.user.id) return;
+                    try {
+                        const info = await this.api(`/v2/users/get/${this.user.id}`);
+                        this.user = { ...this.user, ...info };
+                        localStorage.setItem('user', JSON.stringify(this.user));
+                        this.usersCache[this.user.id] = { user_name: this.user.user_name, avatar_id: this.user.avatar_id };
+                    } catch (e) {}
+                },
+
+                // ==================== 用户缓存 ====================
+                async fetchUsersInfo(userIds) {
+                    const uniqueIds = [...new Set(userIds)].filter(id => id && !this.usersCache[id]);
+                    if (uniqueIds.length === 0) return;
+                    await Promise.all(uniqueIds.map(id =>
+                        this.api(`/v2/users/get/${id}`)
+                            .then(info => { if (info) this.usersCache[id] = { user_name: info.user_name, avatar_id: info.avatar_id }; })
+                            .catch(e => console.error(`Failed to fetch user ${id}`, e))
+                    ));
+                },
+
+                getUserDisplayName(tweet) {
+                    if (tweet.creater_id && this.usersCache[tweet.creater_id]) return this.usersCache[tweet.creater_id].user_name;
+                    return tweet.user_name || '加载中...';
+                },
+
+                getUserAvatar(userId) {
+                    if (!userId) return this.getDefaultAvatar();
+                    if (this.usersCache[userId]?.avatar_id) return '/api/v2/image/' + this.usersCache[userId].avatar_id;
+                    return this.getDefaultAvatar();
+                },
+
+                getDefaultAvatar() { return 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48"%3E%3Ccircle cx="24" cy="24" r="24" fill="%2387CEEB"/%3E%3Ctext x="24" y="30" text-anchor="middle" font-size="20" fill="white"%3E👤%3C/text%3E%3C/svg%3E'; },
+
+                // ==================== 推文 ====================
+                async loadTweets() {
+                    if (this.tweetsLoading || !this.hasMoreTweets) return;
+                    this.tweetsLoading = true;
+                    try {
+                        const data = await this.api(`/v2/tweet/list?skip=${this.tweetsPage * 10}&limit=10&order=desc`);
+                        if (!data || data.length === 0) { this.hasMoreTweets = false; }
+                        else {
+                            this.tweets.push(...data);
+                            this.fetchUsersInfo(data.map(t => t.creater_id));
+                            if (data.length < 10) this.hasMoreTweets = false;
+                            else this.tweetsPage++;
+                        }
+                    } catch (error) { this.showToast('加载失败', 'error'); this.hasMoreTweets = false; }
+                    finally { this.tweetsLoading = false; }
+                },
+
+                async searchTweets() {
+                    if (!this.searchKeyword.trim()) return;
+                    this.tweets = []; this.tweetsLoading = true;
+                    try {
+                        const res = await this.api(`/v2/tweet/search/?keyword=${encodeURIComponent(this.searchKeyword)}&skip=0&limit=50`);
+                        this.tweets = res.results || [];
+                        this.showSearch = false;
+                        if (this.tweets.length > 0) this.fetchUsersInfo(this.tweets.map(t => t.creater_id));
+                    } catch (error) { this.showToast('搜索失败', 'error'); }
+                    finally { this.tweetsLoading = false; }
+                },
+
+                async viewTweetDetail(tweetId) {
+                    this.page = 'detail'; this.pageHistory.push('detail');
+                    this.currentTweet = this.tweets.find(t => t.id === tweetId) || {};
+                    this.comments = [];
+                    try {
+                        const tweetData = await this.api(`/v2/tweet/get/${tweetId}`);
+                        this.currentTweet = { ...this.currentTweet, ...tweetData };
+                        if (this.currentTweet.creater_id) this.fetchUsersInfo([this.currentTweet.creater_id]);
+                    } catch (error) { this.showToast('推文加载失败', 'error'); this.goBack(); return; }
+                    this.comments = await this.api(`/v2/comment/list/${tweetId}?skip=0&limit=50`) || [];
+                },
+
+                async submitComment() {
+                    if (!this.newComment.trim()) return;
+                    try {
+                        await this.api('/v2/comment/create', 'POST', { tweet_id: this.currentTweet.id, content: this.newComment, tags: '' });
+                        this.newComment = '';
+                        this.comments = await this.api(`/v2/comment/list/${this.currentTweet.id}?skip=0&limit=50`) || [];
+                        this.showToast('评论成功', 'success');
+                    } catch (error) { this.showToast('评论失败', 'error'); }
+                },
+
+                // ==================== 发布 ====================
+                openCompose() {
+                    this.page = 'compose'; this.pageHistory.push('compose');
+                    this.composeContent = ''; this.composeImages = []; this.composeImageIds = []; this.composeTags = []; this.showTagInput = false;
+                },
+
+                async handleImageSelect(event) {
+                    const files = event.target.files;
+                    if (!files?.length) return;
+                    for (const file of Array.from(files).slice(0, 9 - this.composeImages.length)) {
+                        if (file.size > 5 * 1024 * 1024) { this.showToast('图片不能超过5MB', 'error'); continue; }
+                        const preview = URL.createObjectURL(file);
+                        const formData = new FormData(); formData.append('file', file);
+                        try {
+                            const res = await this.api('/v2/image/upload', 'POST', formData, true);
+                            this.composeImages.push({ id: res.id, preview });
+                            this.composeImageIds.push(res.id);
+                        } catch (error) { this.showToast('上传失败', 'error'); URL.revokeObjectURL(preview); }
+                    }
+                    event.target.value = '';
+                },
+
+                removeImage(index) { URL.revokeObjectURL(this.composeImages[index].preview); this.composeImages.splice(index, 1); this.composeImageIds.splice(index, 1); },
+                addTag() { const tag = this.tagInputValue.trim().replace(/,/g, ''); if (tag && !this.composeTags.includes(tag)) this.composeTags.push(tag); this.tagInputValue = ''; },
+
+                async publishTweet() {
+                    if ((!this.composeContent.trim() && !this.composeImages.length) || this.composeSubmitting) return;
+                    this.composeSubmitting = true;
+                    try {
+                        await this.api('/v2/tweet/create', 'POST', { tweet: this.composeContent, tags: this.composeTags.join(','), is_published: true, image_ids: this.composeImageIds });
+                        this.showToast('发布成功！', 'success');
+                        this.page = 'home'; this.pageHistory.pop();
+                        this.tweets = []; this.tweetsPage = 0; this.hasMoreTweets = true; this.loadTweets();
+                    } catch (error) { this.showToast('发布失败：' + error.message, 'error'); }
+                    finally { this.composeSubmitting = false; }
+                },
+
+                // ==================== 聊天功能 ====================
+                // 点击头像创建私聊
+                async handleAvatarClick(userId, userName) {
+                    if (!userId || userId === this.user.id) return;
+                    if (!confirm(`与 ${userName || '该用户'} 开始私聊？`)) return;
+                    try {
+                        const result = await this.api(`/v2/chat/conversations/private/${userId}`, 'POST');
+                        this.showToast('私聊创建成功', 'success');
+                        await this.loadConversations();
+                        const conv = this.conversations.find(c => c.id === result.id);
+                        if (conv) this.openChat(conv);
+                        else { this.page = 'chat'; this.pageHistory.push('chat'); }
+                    } catch (error) { this.showToast('创建私聊失败：' + error.message, 'error'); }
+                },
+
+                async loadConversations() {
+                    try {
+                        const res = await this.api('/v2/chat/conversations');
+                        this.conversations = res?.data || [];
+                        this.totalUnread = this.conversations.reduce((sum, c) => sum + (c.unread_count || 0), 0);
+                    } catch (error) { console.error('加载会话列表失败', error); }
+                },
+
+                getConversationAvatar(conv) {
+                    if (conv.type === 'group') return 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48"%3E%3Ccircle cx="24" cy="24" r="24" fill="%2390B77D"/%3E%3Ctext x="24" y="30" text-anchor="middle" font-size="20" fill="white"%3E👥%3C/text%3E%3C/svg%3E';
+                    return this.getDefaultAvatar();
+                },
+
+                openChat(conv) {
+                    this.currentConversation = conv;
+                    this.page = 'chat-detail'; this.pageHistory.push('chat-detail');
+                    this.chatMessages = []; this.chatInputText = ''; this.chatInputImages = [];
+                    this.loadMessages(conv.id);
+                },
+
+                async loadMessages(convId) {
+                    this.chatMessagesLoading = true;
+                    try {
+                        let messages = await this.api(`/v2/chat/conversations/${convId}/messages?before_id=0&limit=20`);
+                        if (messages && messages.length > 0) {
+                            this.chatMessages = messages.reverse();
+                            this.fetchUsersInfo(messages.map(m => m.sender_id));
+                            this.$nextTick(() => { const box = document.getElementById('chat-messages-box'); if (box) box.scrollTop = box.scrollHeight; });
+                        }
+                    } catch (error) { console.error('加载消息失败', error); }
+                    finally { this.chatMessagesLoading = false; }
+                },
+
+                // ==================== WebSocket (核心修复) ====================
+                connectWs() {
+                    if (this.ws?.readyState === WebSocket.OPEN) return;
+
+                    // 关键：动态构建 WebSocket URL，解决 127.0.0.1 连接问题
+                    const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+                    const host = window.location.host;
+                    const wsUrl = `${protocol}//${host}api/v2/chat/ws`;
+
+                    console.log('[WS] Connecting to', wsUrl);
+                    this.ws = new WebSocket(wsUrl);
+
+                    this.ws.onopen = () => {
+                        console.log('[WS] Connected');
+                        this.wsReady = true;
+                        this.ws.send(JSON.stringify({ event: 'auth', data: { token: this.token } })); // 认证
+
+                        // 心跳
+                        clearInterval(this.heartbeatTimer);
+                        this.heartbeatTimer = setInterval(() => {
+                            if (this.ws?.readyState === WebSocket.OPEN) this.ws.send(JSON.stringify({ event: 'ping' }));
+                        }, 30000);
+                    };
+
+                    this.ws.onmessage = (event) => {
+                        try {
+                            const msg = JSON.parse(event.data);
+                            if (msg.event === 'new_message') {
+                                const data = msg.data;
+                                // 当前聊天窗口
+                                if (this.currentConversation && data.conversation_id === this.currentConversation.id) {
+                                    if (!this.chatMessages.find(m => m.id === data.id)) {
+                                        this.chatMessages.push(data);
+                                        if (data.sender_id) this.usersCache[data.sender_id] = { user_name: data.sender_name, avatar_id: null };
+                                        this.$nextTick(() => { const box = document.getElementById('chat-messages-box'); if (box) box.scrollTop = box.scrollHeight; });
+                                    }
+                                } else {
+                                    this.totalUnread++;
+                                    this.loadConversations();
+                                }
+                            }
+                        } catch (e) {}
+                    };
+
+                    this.ws.onclose = () => { console.log('[WS] Closed'); this.wsReady = false; };
+                    this.ws.onerror = (e) => console.error('[WS] Error', e);
+                },
+
+                disconnectWs() { clearInterval(this.heartbeatTimer); if (this.ws) this.ws.close(); },
+
+                // 发送消息
+                async sendChatMessage() {
+                    if (!this.wsReady) { this.showToast('连接断开，正在重连...', 'error'); this.connectWs(); return; }
+                    if (this.chatInputImages.length > 0) {
+                        for (const img of this.chatInputImages) this.ws.send(JSON.stringify({ event: 'new_message', data: { conversation_id: this.currentConversation.id, content: String(img.id), type: 'image' } }));
+                        this.chatInputImages = [];
+                    }
+                    if (this.chatInputText.trim()) {
+                        this.ws.send(JSON.stringify({ event: 'new_message', data: { conversation_id: this.currentConversation.id, content: this.chatInputText.trim(), type: 'text' } }));
+                        this.chatInputText = '';
+                    }
+                },
+
+                async handleChatImageSelect(event) {
+                    const files = event.target.files;
+                    if (!files?.length) return;
+                    for (const file of files) {
+                        if (file.size > 5 * 1024 * 1024) { this.showToast('图片不能超过5MB', 'error'); continue; }
+                        const preview = URL.createObjectURL(file);
+                        const formData = new FormData(); formData.append('file', file);
+                        try {
+                            const res = await this.api('/v2/image/upload', 'POST', formData, true);
+                            this.chatInputImages.push({ id: res.id, preview });
+                        } catch (error) { this.showToast('上传失败', 'error'); }
+                    }
+                    event.target.value = '';
+                },
+
+                // ==================== 群聊管理 ====================
+                async searchUsers(type) {
+                    const keyword = type === 'group' ? this.groupSearchKeyword : this.memberSearchKeyword;
+                    if (!keyword.trim()) { if (type === 'group') this.groupSearchResults = []; else this.memberSearchResults = []; return; }
+                    try {
+                        const res = await this.api(`/v2/chat/users/search?keyword=${encodeURIComponent(keyword)}`);
+                        if (type === 'group') this.groupSearchResults = res?.data || []; else this.memberSearchResults = res?.data || [];
+                    } catch (error) { console.error('搜索用户失败', error); }
+                },
+
+                toggleSelectGroupUser(user) { const index = this.selectedGroupUsers.findIndex(u => u.id === user.id); if (index >= 0) this.selectedGroupUsers.splice(index, 1); else this.selectedGroupUsers.push(user); },
+                async createGroup() {
+                    if (this.selectedGroupUsers.length < 1) return;
+                    try {
+                        const userIds = this.selectedGroupUsers.map(u => u.id);
+                        if (!userIds.includes(this.user.id)) userIds.push(this.user.id);
+                        const result = await this.api('/v2/chat/conversations/group', 'POST', userIds);
+                        this.showToast('群聊创建成功', 'success');
+                        this.showCreateGroupModal = false; this.selectedGroupUsers = []; this.groupSearchKeyword = '';
+                        await this.loadConversations();
+                        const conv = this.conversations.find(c => c.id === result.id);
+                        if (conv) this.openChat(conv);
+                    } catch (error) { this.showToast('创建群聊失败：' + error.message, 'error'); }
+                },
+
+                toggleSelectMember(user) { const index = this.selectedMembers.findIndex(u => u.id === user.id); if (index >= 0) this.selectedMembers.splice(index, 1); else this.selectedMembers.push(user); },
+                async addMembers() {
+                    if (!this.selectedMembers.length || !this.currentConversation) return;
+                    try {
+                        await this.api(`/v2/chat/conversations/${this.currentConversation.id}/members`, 'POST', this.selectedMembers.map(u => u.id));
+                        this.showToast('成员添加成功', 'success');
+                        this.showAddMemberModal = false; this.selectedMembers = []; this.memberSearchKeyword = '';
+                    } catch (error) { this.showToast('添加成员失败：' + error.message, 'error'); }
+                },
+
+                // ==================== 个人主页 ====================
+                async loadMyProfile() { if (!this.user.id) return; await this.loadUserInfo(); try { this.myTweets = await this.api(`/v2/tweet/list?creater_id=${this.user.id}&limit=20&order=desc`); } catch (e) {} },
+                async handleAvatarUpload(event) { const file = event.target.files[0]; if (!file) return; if (file.size > 5 * 1024 * 1024) { this.showToast('图片不能超过5MB', 'error'); return; } const formData = new FormData(); formData.append('file', file); try { const res = await this.api('/v2/image/upload', 'POST', formData, true); await this.api(`/v2/users/put/${this.user.id}`, 'PUT', { user_name: this.user.user_name, email: this.user.email, phone: this.user.phone || '', password: '', is_active: true, whats_up: this.user.whats_up || '', avatar_id: res.id }); await this.loadUserInfo(); this.usersCache[this.user.id] = { user_name: this.user.user_name, avatar_id: res.id }; this.showToast('头像更新成功！', 'success'); } catch (error) { this.showToast('上传失败：' + error.message, 'error'); } event.target.value = ''; },
+                async saveName() { if (!this.editNameValue.trim()) { this.editingName = false; return; } try { await this.api(`/v2/users/put/${this.user.id}`, 'PUT', { user_name: this.editNameValue.trim(), email: this.user.email, phone: this.user.phone || '', password: '', is_active: true, whats_up: this.user.whats_up || '', avatar_id: this.user.avatar_id || 0 }); this.user.user_name = this.editNameValue.trim(); localStorage.setItem('user', JSON.stringify(this.user)); if (this.usersCache[this.user.id]) this.usersCache[this.user.id].user_name = this.editNameValue.trim(); this.showToast('名称已更新', 'success'); } catch (error) { this.showToast('更新失败', 'error'); } finally { this.editingName = false; } },
+                async saveBio() { try { await this.api(`/v2/users/put/${this.user.id}`, 'PUT', { user_name: this.user.user_name, email: this.user.email, phone: this.user.phone || '', password: '', is_active: true, whats_up: this.editBioValue.trim(), avatar_id: this.user.avatar_id || 0 }); this.user.whats_up = this.editBioValue.trim(); localStorage.setItem('user', JSON.stringify(this.user)); this.showToast('签名已更新', 'success'); } catch (error) { this.showToast('更新失败', 'error'); } finally { this.editingBio = false; } },
+
+                // ==================== 工具 ====================
+                navTo(targetPage) {
+                    if (this.page === targetPage) {
+                        if (targetPage === 'home') { this.tweets = []; this.tweetsPage = 0; this.hasMoreTweets = true; this.loadTweets(); }
+                        if (targetPage === 'chat') this.loadConversations();
+                        if (targetPage === 'profile') this.loadMyProfile();
+                    } else { this.page = targetPage; this.pageHistory.push(targetPage); }
+                },
+                goBack() { if (this.pageHistory.length > 1) { this.pageHistory.pop(); this.page = this.pageHistory[this.pageHistory.length - 1]; } else { this.page = 'home'; } },
+                getAvatarUrl(avatarId) { return avatarId ? `/api/v2/image/${avatarId}` : this.getDefaultAvatar(); },
+                formatTime(dateStr) { if (!dateStr) return ''; try { const date = new Date(dateStr); const now = new Date(); const diff = (now - date) / 1000; if (diff < 60) return '刚刚'; if (diff < 3600) return Math.floor(diff / 60) + '分钟前'; if (diff < 86400) return Math.floor(diff / 3600) + '小时前'; return date.toLocaleDateString('zh-CN', { month: 'numeric', day: 'numeric' }); } catch (e) { return dateStr; } },
+                isTweetLong(content) { return content && content.length > 300; },
+                getTweetDisplayContent(tweet) { if (!tweet.tweet) return ''; if (this.expandedTweets[tweet.id]) return tweet.tweet; return this.isTweetLong(tweet.tweet) ? tweet.tweet.substring(0, 300) : tweet.tweet; },
+                toggleTweetExpand(id) { this.expandedTweets[id] = !this.expandedTweets[id]; },
+                getImageGridClass(count) { if (count === 1) return 'single'; if (count === 2) return 'double'; if (count === 4) return 'grid-2'; return 'grid-3'; },
+                formatTags(tagsStr) { if (!tagsStr) return ''; const tags = tagsStr.split(',').filter(t => t.trim()); if (tags.length === 0) return ''; return tags.slice(0, 2).join(', ') + (tags.length > 2 ? '...' : ''); },
+                showToast(message, type = 'info') { this.toast = { show: true, message, type }; setTimeout(() => { this.toast.show = false; }, 3000); },
+                setupScrollListener() { let scrollTimeout; window.addEventListener('scroll', () => { if (this.page !== 'home') return; clearTimeout(scrollTimeout); scrollTimeout = setTimeout(() => { const scrollTop = window.scrollY; const scrollHeight = document.documentElement.scrollHeight; const clientHeight = window.innerHeight; if (scrollHeight - scrollTop - clientHeight < 300) this.loadTweets(); }, 200); }); }
+            };
+        }
+    </script>
+</body>
+</html>

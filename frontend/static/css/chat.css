@@ -1,0 +1,667 @@
+/* 强制聊天页面标题样式 */
+.chat-detail-page .page-header h1,
+.chat-page-bg .page-header h1 {
+    font-size: 15px !important;
+    font-weight: 600 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+}
+
+/* static/css/chat.css */
+
+/* ==================== 1. 头像尺寸标准化 ==================== */
+/* 解决问题：用户反馈头像过大，此处严格限制尺寸 */
+
+/* 头像 */
+.chat-avatar {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    border: 3px solid var(--lobster-grass);
+    object-fit: cover;
+    background: var(--ghibli-sky-light);
+    flex-shrink: 0;
+}
+
+/* 列表页头像：48px (标准触控尺寸) */
+.chat-avatar-lg {
+    width: 48px;
+    height: 48px;
+}
+
+/* 聊天气泡内头像：36px (紧凑尺寸) */
+.chat-avatar-sm {
+    width: 48px;
+    height: 48px;
+}
+
+
+
+/* ==================== 2. 聊天列表页 ==================== */
+
+.chat-page-bg { background-color: white; }
+
+.chat-list-container {
+    height: calc(100vh - 60px);
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
+.chat-list-item {
+    display: flex;
+    align-items: center;
+    padding: 12px 15px;
+    border-bottom: 1px solid rgba(135, 206, 235, 0.2);
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.chat-list-item:active { background-color: var(--ghibli-cream); }
+
+.chat-info {
+    flex: 1;
+    min-width: 0;
+    margin-left: 12px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    height: 48px; /* 与头像高度一致，保证垂直居中 */
+}
+
+.chat-info-hd {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 4px;
+}
+
+.chat-name {
+    font-size: 16px;
+    font-weight: 500;
+    color: var(--text-primary);
+}
+
+.chat-time {
+    font-size: 12px;
+    color: var(--text-light);
+    flex-shrink: 0;
+}
+
+.chat-info-bd {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.chat-msg-text {
+    font-size: 13px;
+    color: var(--text-secondary);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    margin: 0;
+}
+
+.chat-unread {
+    background-color: var(--ghibli-coral);
+    color: white;
+    font-size: 11px;
+    padding: 1px 6px;
+    border-radius: 10px;
+    margin-left: 8px;
+    line-height: 1.4;
+}
+
+/* ==================== 3. 聊天详情页 ==================== */
+
+.chat-detail-page {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    background-color: var(--ghibli-cream);
+}
+
+/* 消息滚动区 */
+.chat-msg-area {
+    flex: 1;
+    overflow-y: auto;
+    padding: 15px;
+    /* 关键优化：增加底部内边距，高度需大于输入栏高度，防止最后一条消息被遮挡 */
+    padding-bottom: 80px;
+    -webkit-overflow-scrolling: touch;
+}
+
+/* 消息行布局 */
+.msg-row { margin-bottom: 20px; display: flex; }
+.msg-row.is-self { justify-content: flex-end; }
+.msg-row.is-other { justify-content: flex-start; }
+
+.msg-block {
+    display: flex;
+    align-items: flex-start; /* 顶部对齐 */
+}
+
+.msg-body {
+    display: flex;
+    flex-direction: column;
+    margin: 0 6px;
+}
+
+.msg-nickname {
+    font-size: 11px;
+    color: var(--text-light);
+    margin-bottom: 4px;
+    margin-left: 4px;
+}
+
+/* 气泡样式 */
+.bubble {
+    padding: 8px 12px;
+    font-size: 14px;
+    line-height: 1.4;
+    word-break: break-word;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.02);
+    display: block !important;  /* 改为 block，让 Markdown 元素正常显示 */
+    max-width: 90% !important;
+}
+
+/* 气泡内 Markdown 元素样式 */
+.bubble p {
+    margin: 4px 0 !important;
+    padding: 0 !important;
+    line-height: 1.4 !important;
+    display: block !important;  /* 改回 block，保留换行 */
+}
+
+.bubble p:first-child {
+    margin-top: 0 !important;
+}
+
+.bubble p:last-child {
+    margin-bottom: 0 !important;
+}
+
+.bubble strong, .bubble b {
+    font-weight: 600 !important;
+}
+
+/* 行内代码 - 排除样式元素 */
+.bubble code:not([class*="hljs"]):not([class*="language"]) {
+    background: rgba(0,0,0,0.08) !important;
+    padding: 2px 6px !important;
+    border-radius: 3px !important;
+    font-family: monospace !important;
+    font-size: 0.85em !important;
+    white-space: normal !important;
+}
+
+/* 代码块 */
+.bubble pre {
+    background: #0d1117 !important;
+    padding: 12px !important;
+    border-radius: 6px !important;
+    overflow-x: auto !important;
+    overflow-y: hidden !important;
+    margin: 8px 0 !important;
+    max-width: 100% !important;
+    white-space: pre !important;
+    word-break: normal !important;
+    font-size: 0.85em !important;
+    line-height: 1.5 !important;
+    -webkit-overflow-scrolling: touch !important;
+}
+
+/* 强制应用 highlight.js 样式 */
+.bubble pre code {
+    display: block !important;
+    overflow-x: auto !important;
+    padding: 0 !important;
+    background: transparent !important;
+    font-family: 'Consolas', 'Monaco', monospace !important;
+}
+
+/* 确保 hljs 类生效 */
+.bubble pre code.hljs,
+.bubble pre code .hljs {
+    color: #c9d1d9 !important;
+    background: transparent !important;
+}
+
+/* 确保 highlight.js 样式生效 */
+.bubble pre code.hljs {
+    display: block !important;
+    overflow-x: auto !important;
+    padding: 0 !important;
+    background: transparent !important;
+    color: #c9d1d9 !important;
+}
+
+/* 行内代码 */
+.bubble p code,
+.bubble li code {
+    background: rgba(110, 118, 129, 0.4) !important;
+    padding: 0.2em 0.4em !important;
+    border-radius: 3px !important;
+    font-size: 0.85em !important;
+    font-family: 'Consolas', 'Monaco', monospace !important;
+}
+
+/* 代码高亮样式覆盖 */
+.bubble pre code {
+    display: block !important;
+    overflow-x: auto !important;
+    font-family: 'Consolas', 'Monaco', 'Courier New', monospace !important;
+}
+
+/* 行内代码保持原样式 */
+.bubble p code,
+.bubble li code {
+    background: rgba(110, 118, 129, 0.4) !important;
+    padding: 0.2em 0.4em !important;
+    border-radius: 3px !important;
+    font-size: 0.85em !important;
+}
+
+/* 代码块内的代码 */
+.bubble pre code {
+    background: transparent !important;
+    padding: 0 !important;
+    color: #abb2bf !important;
+    white-space: pre-wrap !important;
+}
+
+.bubble blockquote {
+    border-left: 3px solid var(--lobster-grass) !important;
+    padding-left: 8px !important;
+    margin: 4px 0 !important;
+    color: #666 !important;
+}
+
+.bubble ul, .bubble ol {
+    margin: 4px 0 !important;
+    padding-left: 20px !important;
+}
+
+.bubble li {
+    margin: 2px 0 !important;
+}
+
+.bubble-other {
+    background-color: white;
+    color: var(--text-primary);
+    border-radius: 4px 12px 12px 12px;
+}
+
+.bubble-self {
+    background-color: var(--ghibli-sky);
+    color: #333;
+    border-radius: 12px 4px 12px 12px;
+}
+
+.bubble-img {
+    max-width: 150px;
+    max-height: 150px;
+    border-radius: 4px;
+    display: block;
+    cursor: pointer;
+}
+
+/* ==================== 4. 底部输入栏 (深度优化) ==================== */
+
+.chat-input-bar {
+    /* 固定定位，始终显示在底部 */
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    /* 限制最大宽度，与 body 一致 */
+    max-width: 480px;
+    margin: 0 auto;
+
+    /* 布局 */
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 12px;
+    /* 适配 iPhone 底部安全区 */
+    padding-bottom: calc(10px + env(safe-area-inset-bottom));
+
+    /* 视觉风格：参考 comment-input-bar */
+    background: rgba(255, 255, 255, 0.98);
+    backdrop-filter: blur(10px); /* 毛玻璃效果 */
+    border-top: 1px solid rgba(135, 206, 235, 0.3);
+    z-index: 100;
+}
+
+/* --- 左侧功能按钮 --- */
+.input-action-btn {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%; /* 圆形 */
+    background-color: var(--ghibli-cream);
+    color: var(--text-secondary);
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    cursor: pointer;
+    transition: all 0.2s;
+    flex-shrink: 0;
+}
+
+.input-action-btn:active {
+    transform: scale(0.9);
+    background-color: var(--ghibli-sky-light);
+}
+/* 专门隐藏聊天上传按钮内的 input */
+input[type="file"] {
+    display: none;
+}
+
+/* --- 中间输入框容器 --- */
+.input-wrapper {
+    flex: 1;
+    /* 模拟输入框的外层容器，用于实现胶囊背景 */
+    background-color: var(--ghibli-cream);
+    border-radius: 20px; /* 胶囊圆角 */
+    padding: 0 16px;
+    height: 40px;
+
+    display: flex;
+    align-items: center;
+
+    transition: all 0.3s;
+}
+
+/* 输入框聚焦时，容器边框发光 */
+.input-wrapper:focus-within {
+    background-color: white;
+    box-shadow: 0 0 0 1px var(--lobster-grass-light);
+}
+
+.input-text-field {
+    width: 100%;
+    background: transparent;
+    border: none;
+    outline: none;
+
+    font-size: 15px;
+    color: var(--text-primary);
+    line-height: 1.4;
+}
+
+.input-text-field::placeholder {
+    color: var(--text-light);
+}
+
+/* --- 右侧发送按钮 --- */
+.input-send-btn {
+    width: 40px;
+    height: 40px;
+    border-radius: 20px; /* 圆角矩形或圆形 */
+    border: none;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    /* 默认态：灰色，禁用感 */
+    background-color: #E0E0E0;
+    color: white;
+    cursor: pointer;
+
+    transition: all 0.3s ease;
+    flex-shrink: 0;
+    opacity: 0.8;
+}
+
+/* 激活态：输入文字后变色 */
+.input-send-btn.active {
+    background-color: var(--lobster-grass); /* 吉卜力草绿色 */
+    opacity: 1;
+    /* 增加阴影，提升立体感 */
+    box-shadow: 0 2px 8px rgba(144, 183, 125, 0.4);
+}
+
+.input-send-btn.active:active {
+    transform: scale(0.9);
+}
+
+/* 禁用状态：显示图标但灰色 */
+.input-send-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+/* 确保 SVG 图标可见 */
+.input-send-btn svg {
+    stroke: currentColor;
+    fill: none;
+}
+
+
+/* ==================== 5. 弹窗优化 ==================== */
+
+.modal-overlay {
+    position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+    background-color: rgba(0,0,0,0.4);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+}
+
+.modal-box {
+    width: 90%; max-width: 320px;
+    background: white;
+    border-radius: 12px;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px 20px;
+    border-bottom: 1px solid rgba(135, 206, 235, 0.3);
+}
+
+.modal-header h3 { font-size: 16px; font-weight: 600; color: var(--text-primary); }
+.modal-close-btn { background: none; border: none; font-size: 24px; color: var(--text-light); cursor: pointer; }
+
+.modal-body { padding: 20px; max-height: 60vh; overflow-y: auto; }
+
+.form-input {
+    width: 100%; padding: 10px; border: 1px solid var(--ghibli-sky-light);
+    border-radius: 8px; margin-bottom: 15px; font-size: 14px; outline: none;
+}
+
+.selected-tags { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 10px; }
+.tag-item { background: var(--ghibli-sky-light); padding: 4px 10px; border-radius: 4px; font-size: 13px; display: flex; align-items: center; }
+.tag-close { background: none; border: none; margin-left: 4px; font-size: 14px; color: var(--text-secondary); cursor: pointer; }
+
+.user-list { max-height: 250px; overflow-y: auto; }
+.user-item {
+    display: flex; align-items: center; padding: 8px 10px;
+    cursor: pointer; border-radius: 8px; margin-bottom: 4px;
+}
+.user-item.active { background-color: var(--ghibli-cream); }
+.check-icon { color: var(--lobster-grass); font-weight: bold; margin-left: auto; }
+
+.modal-footer { display: flex; border-top: 1px solid rgba(135, 206, 235, 0.2); }
+.btn { flex: 1; padding: 12px; border: none; background: none; font-size: 15px; cursor: pointer; }
+.btn-cancel { color: var(--text-secondary); }
+.btn-confirm { color: var(--lobster-grass); font-weight: 500; }
+
+
+/* 群聊九宫格头像容器 */
+.avatar-grid {
+    display: grid;
+    gap: 2px;
+    width: 48px;
+    height: 48px;
+    background-color: #f0f0f0;
+    border-radius: 8px;
+    overflow: hidden;
+    padding: 2px;
+}
+
+/* 单个图片 */
+.grid-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 2px;
+    background-color: #ddd;
+}
+
+/* 布局规则 */
+.grid-1 { grid-template-columns: 1fr; } /* 单人 */
+.grid-2 { grid-template-columns: 1fr 1fr; } /* 两人并排 */
+.grid-3 { grid-template-columns: repeat(3, 1fr); } /* 三人并排 */
+.grid-4 { grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr; } /* 2x2 */
+.grid-6 { grid-template-columns: repeat(3, 1fr); grid-template-rows: repeat(2, 1fr); } /* 3x2 */
+.grid-9 { grid-template-columns: repeat(3, 1fr); grid-template-rows: repeat(3, 1fr); } /* 3x3 */
+/* ========== 聊天消息时间和用户名样式（最终版） ========== */
+.msg-time {
+    display: block !important;
+    font-size: 11px !important;
+    color: #999999 !important;  /* 直接指定灰色 */
+    margin-top: 4px !important;
+}
+
+.msg-time-other {
+    margin-left: 8px !important;
+    text-align: left !important;
+}
+
+.msg-time-self {
+    margin-right: 8px !important;
+    text-align: right !important;
+}
+
+.msg-nickname, .msg-sender-name {
+    display: block !important;
+    font-size: 11px !important;
+    color: #999999 !important;  /* 直接指定灰色 */
+    margin-bottom: 4px !important;
+}
+
+.msg-nickname {
+    text-align: left !important;
+}
+
+.msg-sender-name {
+    text-align: right !important;
+}
+/* ========== 聊天消息时间和用户名样式（最终版） ========== */
+.msg-time {
+    display: block !important;
+    font-size: 11px !important;
+    color: #999999 !important;  /* 直接指定灰色 */
+    margin-top: 4px !important;
+}
+
+.msg-time-other {
+    margin-left: 8px !important;
+    text-align: left !important;
+}
+
+.msg-time-self {
+    margin-right: 8px !important;
+    text-align: right !important;
+}
+
+.msg-nickname, .msg-sender-name {
+    display: block !important;
+    font-size: 11px !important;
+    color: #999999 !important;  /* 直接指定灰色 */
+    margin-bottom: 4px !important;
+}
+
+.msg-nickname {
+    text-align: left !important;
+}
+
+.msg-sender-name {
+    text-align: right !important;
+}
+/* ========== 聊天消息时间和用户名样式（最终版） ========== */
+.msg-time {
+    display: block !important;
+    font-size: 11px !important;
+    color: #999999 !important;  /* 直接指定灰色 */
+    margin-top: 4px !important;
+}
+
+.msg-time-other {
+    margin-left: 8px !important;
+    text-align: left !important;
+}
+
+.msg-time-self {
+    margin-right: 8px !important;
+    text-align: right !important;
+}
+
+.msg-nickname, .msg-sender-name {
+    display: block !important;
+    font-size: 11px !important;
+    color: #999999 !important;  /* 直接指定灰色 */
+    margin-bottom: 4px !important;
+}
+
+.msg-nickname {
+    text-align: left !important;
+}
+
+.msg-sender-name {
+    text-align: right !important;
+}
+
+/* ========== 聊天消息气泡宽度（最终版） ========== */
+.bubble {
+    max-width: 90% !important;
+}
+
+.msg-row.is-self .bubble {
+    max-width: 90% !important;
+}
+
+.msg-row.is-other .bubble {
+    max-width: 90% !important;
+}
+
+.msg-row.is-self .msg-block {
+    margin-right: 0px !important;
+    margin-left: 0px !important;
+}
+
+.msg-row.is-other .msg-block {
+    margin-left: 0px !important;
+    margin-right: 0px !important;
+}
+
+
+/* 聊天页面标题缩小 */
+.page-header h1 {
+    font-size: 15px !important;
+    font-weight: 600;
+    margin: 0;
+}
+
+
+/* 聊天详情页标题缩小 */
+.chat-detail-page .page-header h1 {
+    font-size: 15px !important;
+    font-weight: 600;
+}
+
+/* 聊天列表页标题也缩小 */
+.chat-page-bg .page-header h1 {
+    font-size: 15px !important;
+    font-weight: 600;
+}

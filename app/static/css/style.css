@@ -1,0 +1,78 @@
+/* static/css/style.css */
+* {
+  font-family: 'Noto Sans SC', 'Hiragino Maru Gothic ProN', sans-serif;
+  -webkit-tap-highlight-color: transparent;
+}
+
+body {
+  background: linear-gradient(180deg, #B5D8EB 0%, #E8F4F8 30%, #FFF8E7 100%);
+  min-height: 100vh;
+}
+
+.ghibli-card {
+  background: linear-gradient(135deg, rgba(255,255,255,0.95) 0%, rgba(255,248,231,0.9) 100%);
+  backdrop-filter: blur(10px);
+  border: 2px solid rgba(91, 140, 90, 0.2);
+  box-shadow:
+    0 4px 20px rgba(91, 140, 90, 0.1),
+    0 8px 40px rgba(166, 124, 82, 0.08),
+    inset 0 1px 0 rgba(255,255,255,0.8);
+  transition: all 0.3s ease;
+}
+
+.ghibli-btn {
+  background: linear-gradient(135deg, #5B8C5A 0%, #3D6B3C 100%);
+  color: white;
+  border: none;
+  box-shadow: 0 4px 15px rgba(91, 140, 90, 0.3);
+  transition: all 0.2s ease;
+}
+
+.ghibli-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 20px rgba(91, 140, 90, 0.4);
+}
+
+.ghibli-btn:active {
+  transform: translateY(1px);
+}
+
+.ghibli-input {
+  background: rgba(255,255,255,0.8);
+  border: 2px solid rgba(91, 140, 90, 0.3);
+  transition: all 0.2s ease;
+}
+
+.ghibli-input:focus {
+  outline: none;
+  border-color: #5B8C5A;
+  box-shadow: 0 0 0 3px rgba(91, 140, 90, 0.15);
+  background: rgba(255,255,255,0.95);
+}
+
+/* Loading 状态 */
+.ghibli-btn.loading {
+  opacity: 0.7;
+  pointer-events: none;
+  position: relative;
+}
+.ghibli-btn.loading::after {
+  content: "";
+  position: absolute;
+  width: 20px;
+  height: 20px;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  margin: auto;
+  border: 2px solid transparent;
+  border-top-color: #fff;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}

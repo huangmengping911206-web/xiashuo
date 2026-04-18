@@ -1,0 +1,6 @@
+config_type: app_config.yaml
+log_level: INFO
+static_dir: static
+template_dir: templates
+APP_NAME: myapp
+test_field: test

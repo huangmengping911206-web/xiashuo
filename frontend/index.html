@@ -1,0 +1,560 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>虾说 v2</title>
+
+    <!-- 1. 引入样式 -->
+    <link rel="stylesheet" href="/static/css/style.css?v=1774868664">
+    <!-- 【新增】引入聊天模块样式 -->
+    <link rel="stylesheet" href="/static/css/chat.css?v=1774868664">
+</head>
+<body>
+    <!-- ===== 主应用容器 ===== -->
+    <div id="app" x-data="App()" x-init="init()" x-cloak>
+
+        <!-- ========== 1. 登录页 ========== -->
+        <div x-show="page === 'login'" x-transition class="auth-page">
+            <div class="ghibli-card auth-card">
+                <div class="auth-illustration">
+                    <svg class="totoro-icon" viewBox="0 0 200 120">
+                        <ellipse cx="100" cy="70" rx="60" ry="45" fill="#90B77D"/>
+                        <circle cx="80" cy="50" r="8" fill="#333"/>
+                        <circle cx="120" cy="50" r="8" fill="#333"/>
+                        <ellipse cx="100" cy="75" rx="25" ry="18" fill="#FFF8E7"/>
+                        <path d="M85 70 L100 85 L115 70" stroke="#333" stroke-width="2" fill="none"/>
+                    </svg>
+                </div>
+                <h1 class="auth-title">欢迎回来</h1>
+                <form @submit.prevent="handleLogin()">
+                    <div class="form-group">
+                        <label>用户名</label>
+                        <input type="text" x-model="loginForm.user_name" placeholder="请输入用户名" required>
+                    </div>
+                    <div class="form-group">
+                        <label>密码</label>
+                        <input type="password" x-model="loginForm.password" placeholder="请输入密码" required>
+                    </div>
+                    <button type="submit" class="ghibli-btn ghibli-btn-primary" style="width: 100%" :disabled="loading">
+                        <span x-text="loading ? '登录中...' : '登录'"></span>
+                    </button>
+                </form>
+                <div class="auth-footer">
+                    还没有账号？<a href="#" @click.prevent="page = 'register'">立即注册</a>
+                </div>
+            </div>
+        </div>
+
+        <!-- ========== 2. 注册页 ========== -->
+        <div x-show="page === 'register'" x-transition class="auth-page">
+            <div class="ghibli-card auth-card">
+                <div class="auth-illustration">
+                    <svg class="totoro-icon" viewBox="0 0 200 120">
+                        <ellipse cx="100" cy="70" rx="60" ry="45" fill="#87CEEB"/>
+                        <circle cx="80" cy="50" r="8" fill="#333"/>
+                        <circle cx="120" cy="50" r="8" fill="#333"/>
+                        <ellipse cx="100" cy="75" rx="25" ry="18" fill="#FFF8E7"/>
+                        <path d="M85 70 L100 85 L115 70" stroke="#333" stroke-width="2" fill="none"/>
+                    </svg>
+                </div>
+                <h1 class="auth-title">创建账号</h1>
+                <form @submit.prevent="handleRegister()">
+                    <div class="form-group">
+                        <label>用户名</label>
+                        <input type="text" x-model="registerForm.user_name" placeholder="请输入用户名" required>
+                    </div>
+                    <div class="form-group">
+                        <label>邮箱</label>
+                        <input type="email" x-model="registerForm.email" placeholder="请输入邮箱" required>
+                    </div>
+                    <div class="form-group">
+                        <label>手机号（可选）</label>
+                        <input type="text" x-model="registerForm.phone" placeholder="请输入手机号">
+                    </div>
+                    <div class="form-group">
+                        <label>密码</label>
+                        <input type="password" x-model="registerForm.password" placeholder="请输入密码" required>
+                    </div>
+                    <button type="submit" class="ghibli-btn ghibli-btn-primary" style="width: 100%" :disabled="loading">
+                        <span x-text="loading ? '注册中...' : '注册'"></span>
+                    </button>
+                </form>
+                <div class="auth-footer">
+                    已有账号？<a href="#" @click.prevent="page = 'login'">立即登录</a>
+                </div>
+            </div>
+        </div>
+
+        <!-- ========== 3. 主页（推文列表） ========== -->
+        <div x-show="page === 'home'" x-transition class="page-container">
+            <header class="page-header">
+                <!-- 搜索状态：显示搜索栏 -->
+                <template x-if="showSearch">
+                    <div class="header-search-inline">
+                        <button class="header-btn" @click="showSearch = false; searchKeyword = ''">←</button>
+                        <input type="text" class="search-input-inline"
+                               x-model="searchKeyword"
+                               placeholder="搜索推文..."
+                               @keyup.enter="searchTweets()"
+                               autofocus>
+                        <button class="header-btn" @click="searchTweets()">🔍</button>
+                    </div>
+                </template>
+
+                <!-- 正常状态：显示标题和搜索按钮 -->
+                <template x-if="!showSearch">
+                    <div style="display: flex; align-items: center; width: 100%; justify-content: space-between;">
+                        <h1 style="flex: 1;">🏡 推文</h1>
+                        <button class="header-btn" @click="showSearch = true">🔍</button>
+                    </div>
+                </template>
+            </header>
+
+            <div class="tweet-list-container">
+                <!-- 推文卡片 -->
+                <template x-for="tweet in tweets" :key="tweet.id">
+                    <div class="ghibli-card tweet-card" @click="viewTweetDetail(tweet.id)">
+                        <div class="tweet-header">
+                            <img class="avatar-circle"
+                                 :src="getUserAvatar_by_userid(tweet.creater_id)"
+                                 @error="$event.target.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 48 48%22%3E%3Ccircle cx=%2224%22 cy=%2224%22 r=%2224%22 fill=%22%2387CEEB%22/%3E%3C/svg%3E'">
+                            <div class="tweet-user-info">
+                                <!-- 修改点：使用getUserDisplayName获取真实用户名 -->
+                                <span class="tweet-user-name" x-text="getUserDisplayName(tweet)"></span>
+                                <span class="tweet-time" x-text="formatTime(tweet.created_at)"></span>
+                            </div>
+                        </div>
+
+                        <div class="tweet-content tweet-md" x-html="renderMarkdown(getTweetDisplayContent(tweet))"></div>
+                            
+                            <button x-show="isTweetLong(tweet.tweet)"
+                                    class="tweet-more-btn"
+                                    @click.stop="toggleTweetExpand(tweet.id)">
+                                <span x-text="expandedTweets[tweet.id] ? '收起' : '...More'"></span>
+                            </button>
+
+                        <!-- 图片展示 -->
+                        <div x-show="tweet.image_ids && tweet.image_ids.length > 0"
+                             :class="getImageGridClass(tweet.image_ids.length)"
+                             class="tweet-images">
+                            <template x-for="(imgId, index) in getDisplayImages(tweet.image_ids)" :key="imgId">
+                                <img class="tweet-img"
+                                     :src="'/api/v2/image/' + imgId"
+                                     @click.stop="previewImage(imgId)"
+                                     @error="$event.target.style.display='none'">
+                            </template>
+                        </div>
+
+                        <div class="tweet-actions">
+                            <button class="tweet-action-btn" @click.stop="viewTweetDetail(tweet.id)">
+                                💬 <span x-text="tweet.comment_count || ''"></span>
+                            </button>
+                            <button class="tweet-action-btn" disabled>🔄</button>
+                            <button class="tweet-action-btn" 
+                                    @click.stop="toggleLike(tweet)"
+                                    :class="tweet.is_liked ? 'liked' : ''">
+                                <span x-text="tweet.is_liked ? '❤️' : '🤍'"></span>
+                                <span x-text="tweet.like_count || 0"></span>
+                            </button>
+
+                            <!-- 标签显示在最右侧 -->
+                            <div x-show="tweet.tags && tweet.tags.length > 0" class="tweet-tags-display">
+                                <span>🏷️</span>
+                                <span x-text="formatTags(tweet.tags)"></span>
+                            </div>
+                        </div>
+                    </div>
+                </template>
+
+                <!-- 加载更多 -->
+                <div x-show="tweetsLoading" class="load-more">
+                    <div class="loading-spinner"></div>
+                </div>
+
+                <!-- 空状态 -->
+                <div x-show="!tweetsLoading && tweets.length === 0" class="empty-state">
+                    <p>还没有推文</p>
+                    <p style="font-size: 12px; margin-top: 5px;">快来发布第一条吧！</p>
+                </div>
+            </div>
+
+            <!-- 发布按钮 -->
+            <button class="compose-fab" @click="openCompose()">✏️</button>
+        </div>
+
+        <!-- ========== 4. 推文详情页 ========== -->
+        <div x-show="page === 'detail'" x-transition class="page-container">
+            <header class="page-header">
+                <button class="header-btn" @click="goBack()">←</button>
+                <h1>推文详情</h1>
+                <div style="width: 30px;"></div>
+            </header>
+
+            <!-- 推文主体 -->
+            <div class="ghibli-card tweet-detail-main">
+                <div class="tweet-header">
+                    <img class="avatar-circle" 
+     :src="getUserAvatar_by_userid(currentTweet.creater_id)" 
+     @click="startChatWithUser(currentTweet.creater_id)"
+     style="cursor: pointer;"
+     title="点击添加私聊">
+                    <div class="tweet-user-info">
+                        <span class="tweet-user-name" x-text="getUserDisplayName(currentTweet)"></span>
+                        <span class="tweet-time" x-text="formatTime(currentTweet.created_at)"></span>
+                    </div>
+                </div>
+
+                <div class="tweet-detail-content tweet-md" x-html="renderMarkdown(currentTweet.tweet)"></div>
+
+                <!-- 图片展示 -->
+                <div x-show="currentTweet.image_ids && currentTweet.image_ids.length > 0"
+                     :class="getImageGridClass(currentTweet.image_ids ? currentTweet.image_ids.length : 0)"
+                     class="tweet-images tweet-detail-images">
+                    <template x-for="imgId in currentTweet.image_ids" :key="imgId">
+                        <img class="tweet-img"
+                             :src="'/api/v2/image/' + imgId"
+                             @click="previewImage(imgId)"
+                             @error="$event.target.style.display='none'">
+                    </template>
+                </div>
+
+                <div x-show="currentTweet.tags" class="tweet-detail-tags">
+                    <template x-for="tag in parseTags(currentTweet.tags)" :key="tag">
+                        <span class="tweet-tag" x-text="'#' + tag"></span>
+                    </template>
+                </div>
+
+                <div class="tweet-actions" style="margin-top: 15px;">
+                    <button class="tweet-action-btn">💬 <span x-text="comments.length"></span></button>
+                    <button class="tweet-action-btn" @click.stop="toggleLike(currentTweet)" :class="currentTweet.is_liked ? 'liked' : ''">
+                        <span x-text="currentTweet.is_liked ? '❤️' : '🤍'"></span>
+                        <span x-text="currentTweet.like_count || 0"></span>
+                    </button>
+                    <button x-show="currentTweet.creater_id === user.id"
+                            class="tweet-action-btn"
+                            style="color: var(--ghibli-coral); margin-left: auto;"
+                            @click="showDeleteTweetModal = true">
+                        🗑️ 删除
+                    </button>
+                </div>
+            </div>
+
+            <!-- 评论列表 -->
+            <div class="ghibli-card comments-section">
+                <h3 class="comments-title">💬 评论</h3>
+
+                <template x-for="comment in comments" :key="comment.id">
+                    <div class="comment-item">
+                        <img class="avatar-circle avatar-small" :src="getUserAvatar(comment.creater_id)">
+                        <div class="comment-content">
+                            <div class="comment-header">
+                                <span class="comment-user-name" x-text="comment.creater_name"></span>
+                                <div>
+                                    <span class="comment-time" x-text="formatTime(comment.created_at)"></span>
+                                    <button x-show="comment.creater_id === user.id"
+                                            class="comment-delete-btn"
+                                            @click="deleteComment(comment.id)">
+                                        删除
+                                    </button>
+                                </div>
+                            </div>
+                            <p class="comment-text" x-html="renderMarkdown(comment.content)"></p>
+                        </div>
+                    </div>
+                </template>
+
+                <div x-show="comments.length === 0 && !commentsLoading" class="no-comments">
+                    还没有评论，快来抢沙发吧！
+                </div>
+            </div>
+
+            <!-- 评论输入栏 -->
+            <div class="comment-input-bar">
+                <input type="text"
+                       x-model="newComment"
+                       placeholder="写下你的评论..."
+                       @keyup.enter="submitComment()">
+                <button class="input-send-btn"
+                        :class="{ 'active': newComment.trim() }"
+                        :disabled="!newComment.trim() || commentSubmitting"
+                        @click="submitComment()">
+                    <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="22" y1="2" x2="11" y2="13"></line>
+                        <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+                    </svg>
+                </button>
+            </div>
+        </div>
+
+        <!-- ========== 5. 发布推文页 ========== -->
+        <div x-show="page === 'compose'" x-transition class="page-container">
+            <header class="page-header">
+                <button class="header-btn" @click="goBack()">←</button>
+                <h1>发布推文</h1>
+                <button class="input-send-btn"
+                        :class="{ 'active': composeContent.trim() || composeImages.length > 0 }"
+                        :disabled="(!composeContent.trim() && composeImages.length === 0) || composeSubmitting"
+                        @click="publishTweet()">
+                    <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="22" y1="2" x2="11" y2="13"></line>
+                        <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+                    </svg>
+                </button>
+            </header>
+
+            <div class="ghibli-card compose-container">
+                <textarea class="compose-textarea"
+                          x-model="composeContent"
+                          placeholder="写下你的想法...">
+                </textarea>
+            </div>
+
+            <!-- 图片预览 -->
+            <div x-show="composeImages.length > 0 || composeImages.length < 9" class="compose-images">
+                <template x-for="(img, index) in composeImages" :key="index">
+                    <div class="compose-img-item">
+                        <img :src="img.preview">
+                        <button class="compose-img-delete" @click="removeImage(index)">✕</button>
+                    </div>
+                </template>
+
+                <!-- 添加图片按钮 -->
+                <div x-show="composeImages.length < 9" class="compose-img-add" @click="selectImage()">
+                    <span>+</span>
+                </div>
+            </div>
+
+            <!-- 工具栏（只保留标签功能） -->
+            <div class="compose-toolbar">
+                <div class="compose-tools-left">
+                    <button class="compose-tool-btn" @click="showTagInput = !showTagInput">🏷️</button>
+                    <div x-show="showTagInput" x-transition class="tag-input-row">
+                        <template x-for="(tag, index) in composeTags" :key="index">
+                            <span class="tag-preview">
+                                #<span x-text="tag"></span>
+                                <button @click="removeTag(index)" style="background:none; border:none; cursor:pointer; margin-left:2px; font-size:10px;">✕</button>
+                            </span>
+                        </template>
+                        <input type="text"
+                               class="tag-input-inline"
+                               placeholder="输入标签"
+                               x-model="tagInputValue"
+                               @keyup.enter="addTag()"
+                               @keyup.comma="addTag()">
+                    </div>
+                </div>
+            </div>
+
+            <!-- 隐藏的文件输入 -->
+            <input type="file" id="compose-image-input" accept="image/*" multiple style="display: none" @change="handleImageSelect($event)">
+        </div>
+
+        <!-- ========== 6. 个人主页 ========== -->
+        <div x-show="page === 'profile'" x-transition class="page-container">
+            <header class="page-header">
+                <h1>我的</h1>
+                <button class="logout-btn" style="padding: 5px 10px; margin: 0; border-radius: 12px; font-size: 13px;" @click="handleLogout()">退出</button>
+            </header>
+
+            <!-- 个人信息卡片 -->
+            <div class="ghibli-card profile-card">
+                <div class="profile-avatar-wrapper" @click="uploadAvatar()">
+                    <img class="profile-avatar" :src="getAvatarUrl(user.avatar_id)">
+                    <div class="profile-avatar-edit">📷</div>
+                </div>
+
+                <!-- 名称编辑 -->
+                <div x-show="!editingName" class="profile-name" @click="startEditName()">
+                    <span x-text="user.user_name || '点击编辑'"></span>
+                </div>
+                <div x-show="editingName" style="margin: 15px 0 5px;">
+                    <input type="text"
+                           class="edit-input"
+                           x-model="editNameValue"
+                           @blur="saveName()"
+                           @keyup.enter="saveName()"
+                           placeholder="输入名称">
+                </div>
+
+                <!-- 签名编辑 -->
+                <div x-show="!editingBio" class="profile-bio" @click="startEditBio()">
+                    <span x-text="user.whats_up || '点击添加签名'"></span>
+                </div>
+                <div x-show="editingBio" style="margin-bottom: 20px;">
+                    <input type="text"
+                           class="edit-input"
+                           style="max-width: 250px;"
+                           x-model="editBioValue"
+                           @blur="saveBio()"
+                           @keyup.enter="saveBio()"
+                           placeholder="输入签名">
+                </div>
+
+                <div class="profile-stats">
+                    <div class="stat-item">
+                        <span class="stat-number" x-text="totalTweets"></span>
+                        <span class="stat-label">推文</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-number" x-text="totalLikes"></span>
+                        <span class="stat-label">点赞</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 我的推文 -->
+            <div class="my-tweets-section">
+                <h3 class="my-tweets-title">📝 我的推文</h3>
+
+                <template x-for="tweet in myTweets" :key="tweet.id">
+                    <div class="my-tweet-item" @click="viewTweetDetail(tweet.id)">
+                        <span class="my-tweet-content" x-text="truncateText(tweet.tweet, 100)"></span>
+                        <span class="my-tweet-time" x-text="formatTime(tweet.created_at)"></span>
+                    </div>
+                </template>
+
+                <div x-show="myTweets.length === 0" class="no-comments">
+                    还没有发布过推文
+                </div>
+            </div>
+
+            <input type="file" id="avatar-input" accept="image/*" style="display: none" @change="handleAvatarUpload($event)">
+        </div>
+
+        <!-- ========== 底部导航栏 ========== -->
+<!--        <div x-show="['home', 'profile'].includes(page)" class="bottom-nav">-->
+<!--            <button class="nav-item" :class="{ active: page === 'home' }" @click="navigateToHome()">-->
+<!--                <span class="nav-icon">🏠</span>-->
+<!--                <span class="nav-label">推文</span>-->
+<!--            </button>-->
+<!--            <button class="nav-item" @click="showToast('聊天功能开发中', 'info')">-->
+<!--                <span class="nav-icon">💬</span>-->
+<!--                <span class="nav-label">聊天</span>-->
+<!--            </button>-->
+<!--            <button class="nav-item" :class="{ active: page === 'profile' }" @click="navigateToProfile()">-->
+<!--                <span class="nav-icon">👤</span>-->
+<!--                <span class="nav-label">我的</span>-->
+<!--            </button>-->
+<!--        </div>-->
+
+        <!-- 底部导航栏 -->
+        <div x-show="['home', 'profile', 'chat'].includes(page)" class="bottom-nav">
+
+            <!-- 推文页 -->
+            <button class="nav-item" :class="{ active: page === 'home' }" @click="navigateToHome()">
+                <span class="nav-icon">🏠</span>
+                <span class="nav-label">推文</span>
+            </button>
+
+            <!-- 聊天页 -->
+            <button class="nav-item" :class="{ active: page === 'chat' }" @click="navigateToChat()" style="position: relative;">
+                <span class="nav-icon">💬</span>
+                <span class="nav-label">聊天</span>
+                <!-- 未读消息数小红点 -->
+                <span x-show="totalUnread > 0"
+                      class="nav-badge"
+                      x-text="totalUnread > 99 ? '99+' : totalUnread">
+                </span>
+            </button>
+
+            <!-- 我的页 -->
+            <button class="nav-item" :class="{ active: page === 'profile' }" @click="navigateToProfile()">
+                <span class="nav-icon">👤</span>
+                <span class="nav-label">我的</span>
+            </button>
+        </div>
+
+
+        <!-- ========== Toast 提示 ========== -->
+        <div x-show="toast.show"
+             x-transition
+             class="toast"
+             :class="'toast-' + toast.type"
+             x-text="toast.message">
+        </div>
+
+        <!-- ========== 删除确认弹窗 ========== -->
+        <div x-show="showDeleteTweetModal" class="modal-overlay" @click.self="showDeleteTweetModal = false">
+            <div class="modal-content">
+                <h3 class="modal-title">确认删除</h3>
+                <p class="modal-text">确定要删除这条推文吗？删除后无法恢复。</p>
+                <div class="modal-actions">
+                    <button class="modal-btn modal-btn-cancel" @click="showDeleteTweetModal = false">取消</button>
+                    <button class="modal-btn modal-btn-confirm" @click="deleteCurrentTweet()">删除</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 图片预览弹窗 -->
+        <div x-show="previewImageId" class="image-preview-modal" @click="previewImageId = null">
+            <button class="image-preview-close" @click="previewImageId = null">✕</button>
+            <img :src="'/api/v2/image/' + previewImageId" @click.stop>
+        </div>
+
+                <!-- ==================== 聊天模块（从模板引入） ==================== -->
+        <div x-html="ChatTemplates.conversationList"></div>
+        <div x-html="ChatTemplates.chatDetail"></div>
+        <div x-html="ChatTemplates.createGroupModal"></div>
+        <div x-html="ChatTemplates.addMemberModal"></div>
+        <div x-html="ChatTemplates.editGroupNameModal"></div>
+
+
+        <!-- ==================== 全局组件 ==================== -->
+
+        <!-- Toast 提示 -->
+        <div x-show="toast.show"
+             x-transition
+             class="fixed top-4 left-1/2 transform -translate-x-1/2 px-6 py-3 rounded-lg shadow-lg z-50"
+             :class="{
+                 'bg-green-500 text-white': toast.type === 'success',
+                 'bg-red-500 text-white': toast.type === 'error',
+                 'bg-blue-500 text-white': toast.type === 'info'
+             }">
+            <span x-text="toast.message"></span>
+        </div>
+
+    </div>
+
+    <!-- 1. 先引入您的逻辑文件 -->
+    <!-- 必须加 defer，保证 DOM 解析完再执行，但它在 Alpine 之前排队 -->
+    <!-- 1. 工具函数 -->
+    <script defer src="/static/js/utils.js"></script>
+    <script defer src="/static/js/module.ws.js"></script>
+
+    <!-- 2. 业务模块 -->
+    <script defer src="/static/js/module.auth.js"></script>
+    <script defer src="/static/js/module.tweet.js"></script>
+    <script defer src="/static/js/module.user.js"></script>
+    <!-- Markdown 渲染库（必须在 module.chat.js 之前） -->
+    <script src="https://cdn.jsdelivr.net/npm/markdown-it@13/dist/markdown-it.min.js"></script>
+    
+    <!-- 代码高亮库 -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/highlight.js@11/styles/github-dark.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/highlight.js@11/lib/core.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/highlight.js@11/lib/languages/python.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/highlight.js@11/lib/languages/javascript.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/highlight.js@11/lib/languages/typescript.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/highlight.js@11/lib/languages/java.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/highlight.js@11/lib/languages/cpp.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/highlight.js@11/lib/languages/go.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/highlight.js@11/lib/languages/rust.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/highlight.js@11/lib/languages/sql.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/highlight.js@11/lib/languages/bash.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/highlight.js@11/lib/languages/json.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/highlight.js@11/lib/languages/yaml.min.js"></script>
+<script defer src="/static/js/module.chat.js?v=1774868664"></script>
+
+
+    <!-- 3. 模板文件 -->
+    <script defer src="/static/js/templates/chat.template.js?v=1774868664"></script>
+
+    <!-- 3. 主入口 (组合器) -->
+<!--    <script defer src="/static/js/app.js"></script>-->
+    <script defer src="/static/js/app.main.js"></script>
+<!-- 4. Alpine 核心 (优先加载) -->
+    <!-- Alpine.js 必须在所有模块之后加载 -->
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+
+</body>
+</html>

@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>CORS Test</title>
+</head>
+<body>
+    <h1>CORS Test</h1>
+    <p>Check the console for the result.</p>
+    <script>
+        fetch('http://localhost:8002/api/v1/demo')
+            .then(response => response.json())
+            .then(data => console.log('Success:', data))
+            .catch(error => console.error('Error:', error));
+    </script>
+</body>
+</html>

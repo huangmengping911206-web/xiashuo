@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>风之语 - 登录</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<script>
+tailwind.config = {
+  theme: {
+    extend: {
+      colors: {
+        ghibli: {
+          sky: '#B5D8EB', skyLight: '#E8F4F8', cream: '#FFF8E7',
+          forest: '#5B8C5A', forestDark: '#3D6B3C',
+          brown: '#A67C52', brownLight: '#D4A574',
+          text: '#3D3D3D', textLight: '#6B6B6B',
+        }
+      }
+    }
+  }
+}
+</script>
+<link rel="stylesheet" href="{{ url_for('static', path='/css/style.css') }}">
+</head>
+<body class="overflow-x-hidden">
+
+<div id="app" class="relative z-10 min-h-screen flex items-center justify-center p-4">
+
+  <!-- 登录/注册页面 -->
+  <div id="authPage" class="w-full max-w-md">
+    <div class="ghibli-card rounded-3xl p-8">
+      <!-- Logo -->
+      <div class="text-center mb-8">
+        <div class="inline-block mb-4">
+          <svg width="80" height="80" viewBox="0 0 80 80" class="mx-auto">
+            <circle cx="40" cy="40" r="35" fill="#B5D8EB" stroke="#5B8C5A" stroke-width="3"/>
+            <path d="M25,35 Q40,20 55,35 Q55,50 40,55 Q25,50 25,35" fill="#5B8C5A" opacity="0.8"/>
+            <circle cx="35" cy="38" r="3" fill="#3D3D3D"/>
+            <circle cx="45" cy="38" r="3" fill="#3D3D3D"/>
+            <path d="M35,45 Q40,48 45,45" stroke="#3D3D3D" stroke-width="2" fill="none" stroke-linecap="round"/>
+          </svg>
+        </div>
+        <h1 class="text-2xl font-bold text-ghibli-forest">风之语</h1>
+        <p class="text-ghibli-textLight mt-2">在风中传递你的故事</p>
+      </div>
+
+      <!-- 登录表单 -->
+      <div id="loginForm">
+        <div class="space-y-4">
+          <div>
+            <label class="block text-sm font-medium text-ghibli-text mb-2">用户名</label>
+            <input type="text" id="loginUsername" class="ghibli-input w-full px-4 py-3 rounded-xl" placeholder="请输入用户名">
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-ghibli-text mb-2">密码</label>
+            <input type="password" id="loginPassword" class="ghibli-input w-full px-4 py-3 rounded-xl" placeholder="请输入密码">
+          </div>
+          <button id="loginBtn" class="ghibli-btn w-full py-3 rounded-xl font-medium text-lg">
+            登录
+          </button>
+        </div>
+        <p class="text-center mt-6 text-ghibli-textLight">
+          还没有账号？<a href="#" id="showRegisterLink" class="text-ghibli-forest font-medium hover:underline">立即注册</a>
+        </p>
+      </div>
+
+      <!-- 注册表单 (根据API要求增加了邮箱和电话) -->
+      <div id="registerForm" class="hidden">
+        <div class="space-y-4">
+          <div>
+            <label class="block text-sm font-medium text-ghibli-text mb-2">用户名 *</label>
+            <input type="text" id="regUsername" class="ghibli-input w-full px-4 py-3 rounded-xl" placeholder="请输入用户名">
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-ghibli-text mb-2">邮箱 *</label>
+            <input type="email" id="regEmail" class="ghibli-input w-full px-4 py-3 rounded-xl" placeholder="user@example.com">
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-ghibli-text mb-2">手机号</label>
+            <input type="tel" id="regPhone" class="ghibli-input w-full px-4 py-3 rounded-xl" placeholder="选填">
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-ghibli-text mb-2">密码 *</label>
+            <input type="password" id="regPassword" class="ghibli-input w-full px-4 py-3 rounded-xl" placeholder="请输入密码">
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-ghibli-text mb-2">确认密码 *</label>
+            <input type="password" id="regConfirmPassword" class="ghibli-input w-full px-4 py-3 rounded-xl" placeholder="请再次输入密码">
+          </div>
+          <button id="registerBtn" class="ghibli-btn w-full py-3 rounded-xl font-medium text-lg">
+            注册
+          </button>
+        </div>
+        <p class="text-center mt-6 text-ghibli-textLight">
+          已有账号？<a href="#" id="showLoginLink" class="text-ghibli-forest font-medium hover:underline">立即登录</a>
+        </p>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- Toast 提示 -->
+<div id="toast" class="hidden fixed top-20 left-1/2 transform -translate-x-1/2 z-50 ghibli-card px-6 py-3 rounded-xl shadow-lg">
+  <span id="toastMessage" class="text-ghibli-text"></span>
+</div>
+
+<script type="module" src="{{ url_for('static', path='/js/app.js') }}"></script>
+</body>
+</html>

