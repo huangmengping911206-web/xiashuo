@@ -479,13 +479,13 @@
                                         <div class="watchlist-item-right">
                                             <div class="watchlist-item-price">
                                                 <span class="watchlist-item-current" :class="getChangeClass(item.change_pct)" x-text="item.price || '--'"></span>
+                                                <span x-show="item.prediction" class="pred-tag" :class="getPredictionClass(item.prediction)" x-text="getPredictionEmoji(item.prediction) + ' ' + item.prediction"></span>
                                                 <span class="watchlist-item-change" :class="getChangeClass(item.change_pct)" x-text="item.change_pct != null ? formatChange(item.change_pct) : ''"></span>
                                             </div>
                                             <div x-show="item.prediction" class="watchlist-item-tags">
-                                                <span class="pred-tag" :class="getPredictionClass(item.prediction)" x-text="getPredictionEmoji(item.prediction) + ' ' + item.prediction"></span>
                                                 <span class="pred-score" x-text="item.score ? formatScore(item.score) : ''"></span>
                                                 <span class="pred-magnitude" x-text="item.magnitude_min != null ? formatMagnitude(item.magnitude_min, item.magnitude_max) : ''"></span>
-                                                <span class="pred-date" x-text="item.analysis_date || ''"></span>
+                                                <span class="pred-date" x-text="item.analysis_date ? '📅 ' + item.analysis_date : ''"></span>
                                             </div>
                                         </div>
                                     </div>
