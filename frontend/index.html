@@ -470,23 +470,26 @@
                             <!-- 自选股列表 -->
                             <template x-for="item in watchlist" :key="item.symbol">
                                 <div class="ghibli-card watchlist-item" @click="loadPredictionDetail(item.symbol)">
+                                    <!-- 上半：名称+代码 | 价格+涨跌 | 预判标签 -->
                                     <div class="watchlist-item-main">
                                         <div class="watchlist-item-info">
                                             <span class="watchlist-item-name" x-text="item.name"></span>
                                             <span class="watchlist-item-code" x-text="item.symbol"></span>
                                         </div>
-                                        <div class="watchlist-item-price">
-                                            <span class="watchlist-item-current" :class="getChangeClass(item.change_pct)" x-text="item.price || '--'"></span>
-                                            <span class="watchlist-item-change" :class="getChangeClass(item.change_pct)" x-text="item.change_pct != null ? formatChange(item.change_pct) : ''"></span>
+                                        <div class="watchlist-item-right">
+                                            <div class="watchlist-item-price">
+                                                <span class="watchlist-item-current" :class="getChangeClass(item.change_pct)" x-text="item.price || '--'"></span>
+                                                <span class="watchlist-item-change" :class="getChangeClass(item.change_pct)" x-text="item.change_pct != null ? formatChange(item.change_pct) : ''"></span>
+                                            </div>
+                                            <div x-show="item.prediction" class="watchlist-item-tags">
+                                                <span class="pred-tag" :class="getPredictionClass(item.prediction)" x-text="getPredictionEmoji(item.prediction) + ' ' + item.prediction"></span>
+                                                <span class="pred-score" x-text="item.score ? formatScore(item.score) : ''"></span>
+                                                <span class="pred-magnitude" x-text="item.magnitude_min != null ? formatMagnitude(item.magnitude_min, item.magnitude_max) : ''"></span>
+                                                <span class="pred-date" x-text="item.analysis_date || ''"></span>
+                                            </div>
                                         </div>
                                     </div>
-                                    <!-- 预判信息 -->
-                                    <div x-show="item.prediction" class="watchlist-item-prediction">
-                                        <span class="pred-tag" :class="getPredictionClass(item.prediction)" x-text="getPredictionEmoji(item.prediction) + ' ' + item.prediction"></span>
-                                        <span class="pred-score" x-text="item.score ? formatScore(item.score) : ''"></span>
-                                        <span class="pred-magnitude" x-text="item.magnitude_min != null ? formatMagnitude(item.magnitude_min, item.magnitude_max) : ''"></span>
-                                        <span style="margin-left: auto; font-size: 11px; color: var(--text-light);" x-text="item.analysis_date ? '📅 ' + item.analysis_date : ''"></span>
-                                    </div>
+                                    <!-- 下半：虚线 + 精简理由 -->
                                     <div x-show="item.reasons" class="watchlist-item-reason" x-text="item.reasons"></div>
                                 </div>
                             </template>

@@ -98,13 +98,13 @@
 
 .watchlist-item-main {
     display: flex;
-    align-items: center;
+    align-items: flex-start;
     justify-content: space-between;
+    gap: 12px;
 }
 
 .watchlist-item-info {
-    flex: 1;
-    min-width: 0;
+    flex-shrink: 0;
 }
 
 .watchlist-item-name {
@@ -121,10 +121,14 @@
     display: block;
 }
 
-.watchlist-item-price {
+/* 右侧：价格 + 标签 */
+.watchlist-item-right {
     text-align: right;
     flex-shrink: 0;
-    margin-left: 12px;
+}
+
+.watchlist-item-price {
+    margin-bottom: 4px;
 }
 
 .watchlist-item-current {
@@ -137,62 +141,66 @@
     font-size: 12px;
     font-weight: 500;
     display: block;
-    margin-top: 2px;
+    margin-top: 1px;
 }
 
-.watchlist-item-prediction {
+/* 预判标签行 */
+.watchlist-item-tags {
     display: flex;
     align-items: center;
-    gap: 8px;
-    margin-top: 10px;
-    padding-top: 10px;
-    border-top: 1px dashed rgba(135, 206, 235, 0.3);
-    font-size: 12px;
-    color: var(--text-secondary);
+    justify-content: flex-end;
+    gap: 6px;
+    flex-wrap: wrap;
+    font-size: 11px;
 }
 
-.watchlist-item-prediction .pred-tag {
-    padding: 2px 8px;
-    border-radius: 8px;
+.watchlist-item-tags .pred-tag {
+    padding: 1px 7px;
+    border-radius: 6px;
     font-weight: 500;
     font-size: 11px;
 }
 
-.watchlist-item-prediction .pred-tag.bullish {
+.watchlist-item-tags .pred-tag.bullish {
     background: rgba(231, 76, 60, 0.1);
     color: #e74c3c;
 }
 
-.watchlist-item-prediction .pred-tag.bearish {
+.watchlist-item-tags .pred-tag.bearish {
     background: rgba(39, 174, 96, 0.1);
     color: #27ae60;
 }
 
-.watchlist-item-prediction .pred-tag.neutral {
+.watchlist-item-tags .pred-tag.neutral {
     background: rgba(135, 206, 235, 0.2);
     color: var(--text-secondary);
 }
 
-.watchlist-item-prediction .pred-score {
+.watchlist-item-tags .pred-score {
     color: var(--lobster-grass);
     font-weight: 600;
 }
 
-.watchlist-item-prediction .pred-magnitude {
+.watchlist-item-tags .pred-magnitude {
     color: var(--text-light);
 }
 
+.watchlist-item-tags .pred-date {
+    color: var(--text-light);
+    font-size: 10px;
+}
+
+/* 虚线 + 精简理由 */
 .watchlist-item-reason {
-    margin-top: 8px;
-    padding: 8px 10px;
+    margin-top: 10px;
+    padding-top: 10px;
+    border-top: 1px dashed rgba(135, 206, 235, 0.3);
     font-size: 12px;
-    line-height: 1.6;
+    line-height: 1.7;
     color: var(--text-secondary);
-    background: var(--lobster-cream);
-    border-radius: 8px;
     white-space: pre-line;
     display: -webkit-box;
-    -webkit-line-clamp: 2;
+    -webkit-line-clamp: 3;
     -webkit-box-orient: vertical;
     overflow: hidden;
 }
@@ -492,20 +500,20 @@
 
 /* 综合判断 */
 .prediction-summary {
-    margin-bottom: 15px;
-    padding: 15px;
+    margin-bottom: 12px;
+    padding: 14px 16px;
 }
 
 .prediction-summary-header {
     display: flex;
     align-items: center;
-    gap: 10px;
-    margin-bottom: 10px;
+    gap: 8px;
+    margin-bottom: 8px;
     flex-wrap: wrap;
 }
 
 .prediction-summary-direction {
-    font-size: 15px;
+    font-size: 14px;
     font-weight: 600;
     padding: 3px 10px;
     border-radius: 10px;
@@ -527,7 +535,7 @@
 }
 
 .prediction-summary-magnitude {
-    font-size: 13px;
+    font-size: 12px;
     color: var(--text-secondary);
     font-weight: 500;
 }
@@ -541,17 +549,17 @@
 
 .prediction-summary-meta {
     display: flex;
-    gap: 15px;
-    font-size: 12px;
+    gap: 12px;
+    font-size: 11px;
     color: var(--text-light);
     margin-bottom: 8px;
 }
 
 .prediction-summary-reasons {
-    font-size: 13px;
+    font-size: 12px;
     line-height: 1.7;
     color: var(--text-secondary);
-    padding: 10px;
+    padding: 10px 12px;
     background: var(--lobster-cream);
     border-radius: 10px;
     white-space: pre-line;
