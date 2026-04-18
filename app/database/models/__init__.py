@@ -12,6 +12,7 @@ from app.database.models.user import User
 from app.database.models.tweet import Tweet
 
 from app.database.models.image import Image  # 导入图片模型
+from app.database.models.stock import StockWatchlist, StockPrediction, StockBacktest  # 导入股票分析模型
 
 
 
@@ -27,5 +28,8 @@ __all__ = [
     "Comment",
     "Conversation",
     "ConversationMember",
-    "Message"
+    "Message",
+    "StockWatchlist",
+    "StockPrediction",
+    "StockBacktest",
 ]
