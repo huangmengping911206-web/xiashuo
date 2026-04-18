@@ -9,6 +9,8 @@
     <link rel="stylesheet" href="/static/css/style.css?v=1774868664">
     <!-- 【新增】引入聊天模块样式 -->
     <link rel="stylesheet" href="/static/css/chat.css?v=1774868664">
+    <!-- A股分析模块样式 -->
+    <link rel="stylesheet" href="/static/css/stock.css?v=1774868665">
 </head>
 <body>
     <!-- ===== 主应用容器 ===== -->
@@ -422,6 +424,203 @@
             <input type="file" id="avatar-input" accept="image/*" style="display: none" @change="handleAvatarUpload($event)">
         </div>
 
+        <!-- ========== 7. A股分析 - 看板页 ========== -->
+        <div x-show="page === 'stock'" x-transition class="page-container">
+            <header class="page-header">
+                <h1>📈 A股分析</h1>
+                <button class="refresh-btn" :class="{ spinning: boardLoading }" @click="refreshBoard()">🔄</button>
+            </header>
+
+            <div class="stock-board-container">
+                <!-- 加载中 -->
+                <div x-show="boardLoading" class="stock-loading">
+                    <div class="stock-loading-spinner"></div>
+                    <p>加载行情数据...</p>
+                </div>
+
+                <template x-if="!boardLoading">
+                    <div>
+                        <!-- 大盘概览 -->
+                        <div class="ghibli-card market-overview">
+                            <div class="market-overview-title">📊 大盘概览</div>
+                            <div class="market-indices">
+                                <template x-for="idx in marketIndices" :key="idx.symbol">
+                                    <div class="market-index-item">
+                                        <div class="market-index-name" x-text="idx.name"></div>
+                                        <div class="market-index-price" x-text="idx.price"></div>
+                                        <div class="market-index-change" :class="getChangeClass(idx.change_pct)" x-text="formatChange(idx.change_pct)"></div>
+                                    </div>
+                                </template>
+                            </div>
+                        </div>
+
+                        <!-- 自选股 -->
+                        <div class="watchlist-section">
+                            <div class="watchlist-header">
+                                <span class="watchlist-title">⭐ 自选股</span>
+                                <button class="watchlist-add-btn" @click="showAddStockModal = true">+ 添加</button>
+                            </div>
+
+                            <!-- 空状态 -->
+                            <div x-show="watchlist.length === 0" class="stock-empty-state">
+                                <p>还没有自选股</p>
+                                <p style="font-size: 12px; color: var(--text-light);">点击上方 + 添加关注的股票</p>
+                            </div>
+
+                            <!-- 自选股列表 -->
+                            <template x-for="item in watchlist" :key="item.symbol">
+                                <div class="ghibli-card watchlist-item" @click="loadPredictionDetail(item.symbol)">
+                                    <div class="watchlist-item-main">
+                                        <div class="watchlist-item-info">
+                                            <span class="watchlist-item-name" x-text="item.name"></span>
+                                            <span class="watchlist-item-code" x-text="item.symbol"></span>
+                                        </div>
+                                        <div class="watchlist-item-price">
+                                            <span class="watchlist-item-current" :class="getChangeClass(item.change_pct)" x-text="item.price"></span>
+                                            <span class="watchlist-item-change" :class="getChangeClass(item.change_pct)" x-text="formatChange(item.change_pct)"></span>
+                                        </div>
+                                    </div>
+                                    <!-- 预判信息 -->
+                                    <div x-show="item.prediction" class="watchlist-item-prediction">
+                                        <span x-text="getPredictionEmoji(item.prediction.prediction)"></span>
+                                        <span class="prediction-label" :class="getPredictionClass(item.prediction.prediction)" x-text="item.prediction.prediction"></span>
+                                        <span class="prediction-magnitude" x-text="formatMagnitude(item.prediction.magnitude_min, item.prediction.magnitude_max)"></span>
+                                        <span class="prediction-score" x-text="formatScore(item.prediction.score)"></span>
+                                        <span class="prediction-reason-btn">📋</span>
+                                    </div>
+                                </div>
+                            </template>
+                        </div>
+
+                        <!-- 准确率统计 -->
+                        <div x-show="stats && stats.total_count > 0" class="ghibli-card accuracy-card">
+                            <div class="accuracy-title">🎯 预判准确率 <span style="font-size: 12px; color: var(--text-light);">近30天</span></div>
+                            <div class="accuracy-main">
+                                <div class="accuracy-rate">
+                                    <span class="accuracy-rate-value" x-text="(stats.accuracy_rate * 100).toFixed(0) + '%'"></span>
+                                    <span class="accuracy-rate-label">总命中率</span>
+                                </div>
+                                <div class="accuracy-bar">
+                                    <div class="accuracy-bar-fill" :style="'width: ' + (stats.accuracy_rate * 100) + '%'"></div>
+                                </div>
+                            </div>
+                            <div class="accuracy-detail">
+                                <div class="accuracy-item">
+                                    <span>📈 看涨</span>
+                                    <span x-text="stats.bullish_count > 0 ? ((stats.bullish_correct / stats.bullish_count) * 100).toFixed(0) + '%' : '--'"></span>
+                                </div>
+                                <div class="accuracy-item">
+                                    <span>📉 看跌</span>
+                                    <span x-text="stats.bearish_count > 0 ? ((stats.bearish_correct / stats.bearish_count) * 100).toFixed(0) + '%' : '--'"></span>
+                                </div>
+                                <div class="accuracy-item">
+                                    <span>➡️ 中性</span>
+                                    <span x-text="stats.neutral_count > 0 ? ((stats.neutral_correct / stats.neutral_count) * 100).toFixed(0) + '%' : '--'"></span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </template>
+            </div>
+        </div>
+
+        <!-- ========== 8. A股分析 - 预判详情页 ========== -->
+        <div x-show="page === 'stock-detail'" x-transition class="page-container">
+            <header class="page-header">
+                <button class="back-btn" @click="goBackFromStock()">← 返回</button>
+                <h1 x-text="predictionDetail ? predictionDetail.name + ' 预判' : '加载中...'"></h1>
+            </header>
+
+            <div class="stock-board-container">
+                <template x-if="predictionDetail">
+                    <div>
+                        <!-- 预判概要 -->
+                        <div class="ghibli-card prediction-summary">
+                            <div class="prediction-summary-header">
+                                <span class="prediction-summary-direction" :class="getPredictionClass(predictionDetail.prediction)" x-text="getPredictionEmoji(predictionDetail.prediction) + ' ' + predictionDetail.prediction"></span>
+                                <span class="prediction-summary-magnitude" x-text="formatMagnitude(predictionDetail.magnitude_min, predictionDetail.magnitude_max)"></span>
+                                <span class="prediction-summary-score" x-text="formatScore(predictionDetail.score)"></span>
+                            </div>
+                            <div class="prediction-summary-meta">
+                                <span>分析日期：<span x-text="predictionDetail.analysis_date"></span></span>
+                                <span x-show="predictionDetail.entry_price">分析时价格：<span x-text="predictionDetail.entry_price"></span></span>
+                            </div>
+                            <div x-show="predictionDetail.reasons" class="prediction-summary-reasons" x-text="predictionDetail.reasons"></div>
+                        </div>
+
+                        <!-- 六维评估 -->
+                        <div class="ghibli-card">
+                            <div class="dimensions-title">六维评估</div>
+                            <template x-for="dim in [
+                                { key: 'fundamental', label: '基本面', icon: '💼' },
+                                { key: 'industry', label: '行业面', icon: '🏭' },
+                                { key: 'news', label: '消息面', icon: '📰' },
+                                { key: 'technical', label: '技术面', icon: '📊' },
+                                { key: 'capital', label: '资金面', icon: '💰' },
+                                { key: 'risk', label: '风险面', icon: '⚠️' }
+                            ]" :key="dim.key">
+                                <div class="dimension-item" @click="toggleDimension(dim.key)">
+                                    <div class="dimension-header">
+                                        <span class="dimension-label"><span x-text="dim.icon"></span> <span x-text="dim.label"></span></span>
+                                        <span class="dimension-toggle" x-text="expandedDimensions[dim.key] ? '▼' : '▶'"></span>
+                                    </div>
+                                    <div x-show="expandedDimensions[dim.key]" x-transition class="dimension-content" x-text="predictionDetail[dim.key] || '暂无数据'"></div>
+                                </div>
+                            </template>
+                        </div>
+
+                        <!-- 历史准确率 -->
+                        <div x-show="predictionStats && predictionStats.total_count > 0" class="ghibli-card accuracy-card">
+                            <div class="accuracy-title">🎯 该股预判准确率</div>
+                            <div class="accuracy-main">
+                                <div class="accuracy-rate">
+                                    <span class="accuracy-rate-value" x-text="(predictionStats.accuracy_rate * 100).toFixed(0) + '%'"></span>
+                                    <span class="accuracy-rate-label">总命中率</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 历史预判 -->
+                        <div x-show="predictionHistory.length > 1" class="ghibli-card">
+                            <div class="dimensions-title">历史预判</div>
+                            <template x-for="h in predictionHistory.slice(1)" :key="h.id">
+                                <div class="history-item">
+                                    <span class="history-date" x-text="h.analysis_date"></span>
+                                    <span :class="getPredictionClass(h.prediction)" x-text="getPredictionEmoji(h.prediction) + ' ' + h.prediction"></span>
+                                    <span class="history-score" x-text="formatScore(h.score)"></span>
+                                </div>
+                            </template>
+                        </div>
+                    </div>
+                </template>
+            </div>
+        </div>
+
+        <!-- ========== 添加自选股弹窗 ========== -->
+        <div x-show="showAddStockModal" class="modal-overlay" @click.self="showAddStockModal = false">
+            <div class="modal-content" style="max-height: 70vh; overflow-y: auto;">
+                <h3 class="modal-title">添加自选股</h3>
+                <div class="search-input-wrapper">
+                    <input type="text" class="search-input" placeholder="输入股票代码或名称搜索..."
+                           x-model="stockSearchKeyword" @input.debounce.500ms="searchStockToAdd()">
+                </div>
+                <div x-show="stockSearching" class="search-loading">搜索中...</div>
+                <div x-show="!stockSearching && stockSearchResults.length === 0 && stockSearchKeyword.length > 0" class="search-empty">未找到匹配的股票</div>
+                <template x-for="item in stockSearchResults" :key="item.symbol">
+                    <div class="search-result-item">
+                        <div class="search-result-info">
+                            <div class="search-result-name" x-text="item.name"></div>
+                            <div class="search-result-code" x-text="item.symbol + ' · ' + (item.exchange || '')"></div>
+                        </div>
+                        <button class="search-result-add" @click="addToWatchlist(item)" x-text="watchlist.some(w => w.symbol === item.symbol) ? '已添加' : '添加'"></button>
+                    </div>
+                </template>
+                <div class="modal-actions">
+                    <button class="modal-btn modal-btn-cancel" @click="showAddStockModal = false">关闭</button>
+                </div>
+            </div>
+        </div>
+
         <!-- ========== 底部导航栏 ========== -->
 <!--        <div x-show="['home', 'profile'].includes(page)" class="bottom-nav">-->
 <!--            <button class="nav-item" :class="{ active: page === 'home' }" @click="navigateToHome()">-->
@@ -439,12 +638,18 @@
 <!--        </div>-->
 
         <!-- 底部导航栏 -->
-        <div x-show="['home', 'profile', 'chat'].includes(page)" class="bottom-nav">
+        <div x-show="['home', 'profile', 'chat', 'stock', 'stock-detail'].includes(page)" class="bottom-nav">
 
             <!-- 推文页 -->
             <button class="nav-item" :class="{ active: page === 'home' }" @click="navigateToHome()">
                 <span class="nav-icon">🏠</span>
                 <span class="nav-label">推文</span>
+            </button>
+
+            <!-- A股分析 -->
+            <button class="nav-item" :class="{ active: ['stock', 'stock-detail'].includes(page) }" @click="navigateToStock()">
+                <span class="nav-icon">📈</span>
+                <span class="nav-label">A股</span>
             </button>
 
             <!-- 聊天页 -->
@@ -544,6 +749,9 @@
     <script src="https://cdn.jsdelivr.net/npm/highlight.js@11/lib/languages/json.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/highlight.js@11/lib/languages/yaml.min.js"></script>
 <script defer src="/static/js/module.chat.js?v=1774868664"></script>
+
+<!-- A股分析模块 -->
+<script defer src="/static/js/module.stock.js?v=1774868665"></script>
 
 
     <!-- 3. 模板文件 -->
